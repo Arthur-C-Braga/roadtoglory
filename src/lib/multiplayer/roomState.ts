@@ -247,13 +247,18 @@ export function reducer(s: RoomState, e: RoomEvent): RoomState {
         const seatIdx = connected.findIndex((c) => c.id === p.id);
         return { ...p, teamIdx: seatIdx >= 0 && seatIdx < n ? seatIdx : null };
       });
+      // each team starts named after the player seated on it (online)
+      const teams = Array.from({ length: n }, emptyTeam).map((tm, i) => {
+        const owner = players.find((p) => p.teamIdx === i);
+        return owner ? { ...tm, name: owner.name } : tm;
+      });
       return {
         ...initialRoom(),
         players,
         hostId: s.hostId,
         mode: e.mode,
         stage: "setup",
-        teams: Array.from({ length: n }, emptyTeam),
+        teams,
         rerolls: Array.from({ length: n }, () => REROLL_MAX),
       };
     }
@@ -272,7 +277,7 @@ export function reducer(s: RoomState, e: RoomEvent): RoomState {
         ),
       };
     case "startDraft":
-      return { ...s, stage: "draft" };
+      return { ...s, stage: "draft", ready: [] };
     case "draw": {
       const rerolls = e.reroll
         ? s.rerolls.map((v, i) => (i === s.turn ? Math.max(0, v - 1) : v))

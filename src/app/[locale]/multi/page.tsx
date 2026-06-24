@@ -14,8 +14,6 @@ export default async function MultiPage({
   const modes = [
     { key: "Local", name: t("modeLocal"), desc: t("modeLocalDesc"), href: "/multi/local", soon: false },
     { key: "Online", name: t("modeOnline"), desc: t("modeOnlineDesc"), href: "/multi/online", soon: false },
-    { key: "Final", name: t("modeFinal"), desc: t("modeFinalDesc"), href: "/multi/local", soon: true },
-    { key: "Copa", name: t("modeCopa"), desc: t("modeCopaDesc"), href: "/multi/local", soon: true },
   ];
 
   return (

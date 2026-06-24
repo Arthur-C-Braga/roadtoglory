@@ -121,12 +121,13 @@ export function MultiGame({
   const myTurn = !online || seat.myTeamIdx === turn;
   const canHost = !online || seat.isHost;
 
-  // reveal gate: the host may only start a match once every other connected
-  // player (non-host, with a team) has pressed "Pronto"
-  const revealOthers = state.players.filter(
+  // ready gate (setup + reveal): the host may only advance once every other
+  // connected player (non-host, with a team) has pressed "Pronto"
+  const gateOthers = state.players.filter(
     (p) => p.connected && p.id !== state.hostId && p.teamIdx != null
   );
-  const allRevealReady = !online || revealOthers.length === 0 || revealOthers.every((p) => state.ready.includes(p.id));
+  const allGateReady = !online || gateOthers.length === 0 || gateOthers.every((p) => state.ready.includes(p.id));
+  const readyCount = gateOthers.filter((p) => state.ready.includes(p.id)).length;
   const iAmReady = state.ready.includes(seat.playerId);
 
   // ----- draft helpers (active team) -------------------------------------
@@ -363,11 +364,27 @@ export function MultiGame({
               </button>
             )}
             {canHost ? (
-              <button className="btn btn-primary big" onClick={() => dispatch({ t: "startDraft" })}>
-                {t("multi.local.startDraft")}
-              </button>
+              <>
+                <button
+                  className="btn btn-primary big"
+                  disabled={online && !allGateReady}
+                  onClick={() => dispatch({ t: "startDraft" })}
+                >
+                  {t("multi.local.startDraft")}
+                </button>
+                {online && !allGateReady && (
+                  <span className="mo-host-hint">
+                    {t("multi.online.readyCount", { n: readyCount, total: gateOthers.length })}
+                  </span>
+                )}
+              </>
             ) : (
-              <span className="mo-host-hint">{t("multi.online.waitingHost")}</span>
+              <button
+                className={`btn ${iAmReady ? "btn-secondary" : "btn-primary"} big`}
+                onClick={() => dispatch({ t: "setReady", id: seat.playerId, ready: !iAmReady })}
+              >
+                {iAmReady ? t("multi.online.cancelReady") : t("multi.online.markReady")}
+              </button>
             )}
           </div>
         </div>
@@ -538,17 +555,14 @@ export function MultiGame({
                 </div>
                 <button
                   className="btn btn-primary big"
-                  disabled={online && !allRevealReady}
+                  disabled={online && !allGateReady}
                   onClick={() => dispatch({ t: "startMatch" })}
                 >
                   {t("multi.local.revealMatch")}
                 </button>
-                {online && !allRevealReady && (
+                {online && !allGateReady && (
                   <span className="mo-host-hint">
-                    {t("multi.online.readyCount", {
-                      n: revealOthers.filter((p) => state.ready.includes(p.id)).length,
-                      total: revealOthers.length,
-                    })}
+                    {t("multi.online.readyCount", { n: readyCount, total: gateOthers.length })}
                   </span>
                 )}
               </>
