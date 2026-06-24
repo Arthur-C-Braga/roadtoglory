@@ -2924,6 +2924,12 @@ h3 {
 .ml-setup-grid.quad {
   grid-template-columns: 1fr 1fr;
 }
+/* online: a single player only edits their own card */
+.ml-setup-grid.solo {
+  grid-template-columns: 1fr;
+  max-width: 420px;
+  margin: 0 auto;
+}
 .ml-setup-actions {
   display: flex;
   justify-content: center;

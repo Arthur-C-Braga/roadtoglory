@@ -227,7 +227,8 @@
       "nowDrafting": "Montando agora",
       "watching": "{name} está montando o time…",
       "waitingReveal": "Aguardando o anfitrião revelar a partida…",
-      "readyCount": "{n}/{total} prontos"
+      "readyCount": "{n}/{total} prontos",
+      "spectating": "Você está assistindo a esta sala."
     }
   },
   "perfil": {

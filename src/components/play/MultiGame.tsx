@@ -342,21 +342,28 @@ export function MultiGame({
         <div className="page-body ml-setup-body">
           <h1 className="page-title">{t("multi.local.title")}</h1>
           <p className="page-sub">{online ? t("multi.online.setupSub") : t("multi.local.sub")}</p>
-          <div className={`ml-setup-grid${teams.length === 4 ? " quad" : ""}`}>
-            {teams.map((team, idx) => (
-              <SetupPanel
-                key={idx}
-                idx={idx}
-                team={team}
-                ownerName={online ? named(idx) : undefined}
-                disabled={!canEditTeam(idx)}
-                onName={(name) => dispatch({ t: "patchTeam", idx, patch: { name } })}
-                onFormation={(f) => dispatch({ t: "chooseFormation", idx, formation: f })}
-                onStyle={(s) => dispatch({ t: "patchTeam", idx, patch: { style: s } })}
-                onMode={(a) => dispatch({ t: "patchTeam", idx, patch: { almanaque: a } })}
-              />
-            ))}
+          <div className={`ml-setup-grid${online ? " solo" : teams.length === 4 ? " quad" : ""}`}>
+            {teams.map((team, idx) => {
+              // online: each player only sees and edits their own card
+              if (online && seat.myTeamIdx !== idx) return null;
+              return (
+                <SetupPanel
+                  key={idx}
+                  idx={idx}
+                  team={team}
+                  ownerName={online ? named(idx) : undefined}
+                  disabled={!canEditTeam(idx)}
+                  onName={(name) => dispatch({ t: "patchTeam", idx, patch: { name } })}
+                  onFormation={(f) => dispatch({ t: "chooseFormation", idx, formation: f })}
+                  onStyle={(s) => dispatch({ t: "patchTeam", idx, patch: { style: s } })}
+                  onMode={(a) => dispatch({ t: "patchTeam", idx, patch: { almanaque: a } })}
+                />
+              );
+            })}
           </div>
+          {online && seat.myTeamIdx == null && (
+            <p className="mo-status">{t("multi.online.spectating")}</p>
+          )}
           <div className="ml-setup-actions">
             {!online && (
               <button className="btn btn-secondary" onClick={() => dispatch({ t: "back" })}>

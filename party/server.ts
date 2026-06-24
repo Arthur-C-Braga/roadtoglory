@@ -86,6 +86,11 @@ export class Room extends Server {
     if (ev.t === "setReady") return ev.id === senderId ? ev : null;
     // host-only flow controls
     if (HOST_ONLY.has(ev.t)) return senderId === this.roomState.hostId ? ev : null;
+    // editing a team's setup: only its own player
+    if (ev.t === "patchTeam" || ev.t === "chooseFormation") {
+      const me = this.roomState.players.find((p) => p.id === senderId);
+      return me && me.teamIdx === ev.idx ? ev : null;
+    }
     // draft actions: only the player whose team is on the clock
     if (DRAFT_EVENTS.has(ev.t)) {
       const me = this.roomState.players.find((p) => p.id === senderId);
