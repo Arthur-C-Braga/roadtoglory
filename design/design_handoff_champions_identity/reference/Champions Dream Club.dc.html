@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+<link href="https://fonts.googleapis.com/css2?family=Anton&amp;family=Saira:wght@300;400;500;600;700;800;900&amp;family=Saira+Condensed:wght@600;700;800;900&amp;display=swap" rel="stylesheet">
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:#05091c;font-family:'Saira',sans-serif}
+  @keyframes twinkle{0%,100%{opacity:.15}50%{opacity:.9}}
+  @keyframes floatUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+  @keyframes spinDie{0%{transform:rotate(0) scale(1)}50%{transform:rotate(180deg) scale(1.15)}100%{transform:rotate(360deg) scale(1)}}
+  @keyframes glowPulse{0%,100%{opacity:.45}50%{opacity:.85}}
+  @keyframes sweep{0%{transform:translateX(-120%)}100%{transform:translateX(120%)}}
+  ::selection{background:#2f6dff;color:#fff}
+</style>
+</helmet>
+
+<div style="position:relative;min-height:100vh;width:100%;overflow:hidden;background:radial-gradient(120% 90% at 50% -10%, #15336f 0%, #0a1840 38%, #05091c 78%);font-family:'Saira',sans-serif;color:#eaf0ff">
+
+  <!-- star field -->
+  <div style="position:absolute;inset:0;pointer-events:none;z-index:0">
+    <sc-for list="{{ stars }}" as="s" hint-placeholder-count="40">
+      <div style="position:absolute;left:{{ s.left }};top:{{ s.top }};width:{{ s.size }};height:{{ s.size }};border-radius:50%;background:#cfe0ff;box-shadow:0 0 6px #8fb4ff;opacity:{{ s.op }};animation:twinkle {{ s.dur }} ease-in-out infinite;animation-delay:{{ s.delay }}"></div>
+    </sc-for>
+  </div>
+  <div style="position:absolute;top:-220px;left:50%;transform:translateX(-50%);width:1100px;height:700px;border-radius:50%;background:radial-gradient(closest-side, rgba(63,118,255,.30), rgba(63,118,255,0) 70%);pointer-events:none;z-index:0;animation:glowPulse 6s ease-in-out infinite"></div>
+
+  <!-- ===== HEADER ===== -->
+  <header style="position:relative;z-index:5;display:flex;align-items:center;justify-content:space-between;padding:26px 48px;max-width:1320px;margin:0 auto">
+    <div style="display:flex;align-items:center;gap:14px">
+      <div style="width:34px;height:34px;position:relative;display:flex;align-items:center;justify-content:center">
+        <div style="position:absolute;inset:0;border-radius:50%;border:1.5px solid rgba(140,176,255,.55)"></div>
+        <div style="color:#cfe0ff;font-size:15px;line-height:1">★</div>
+      </div>
+      <div style="font-family:'Saira Condensed',sans-serif;font-weight:800;letter-spacing:.18em;font-size:13px;color:#cdd9ff;text-transform:uppercase">Dream Club <span style="color:#5d8bff">UCL</span></div>
+    </div>
+    <div style="display:flex;gap:12px">
+      <button onClick="{{ goHome }}" style="display:flex;align-items:center;gap:8px;background:rgba(255,255,255,.04);border:1px solid rgba(150,180,255,.28);color:#dce6ff;font-family:'Saira',sans-serif;font-weight:600;font-size:13px;letter-spacing:.04em;padding:9px 16px;border-radius:3px;cursor:pointer" style-hover="background:rgba(63,118,255,.18);border-color:#5d8bff">Perfil</button>
+      <button style="display:flex;align-items:center;gap:8px;background:rgba(255,255,255,.04);border:1px solid rgba(150,180,255,.28);color:#dce6ff;font-family:'Saira',sans-serif;font-weight:600;font-size:13px;letter-spacing:.04em;padding:9px 16px;border-radius:3px;cursor:pointer" style-hover="background:rgba(63,118,255,.18);border-color:#5d8bff">Ajustes ▾</button>
+    </div>
+  </header>
+
+  <!-- ============================================================= HOME -->
+  <sc-if value="{{ isHome }}" hint-placeholder-val="{{ true }}">
+  <main style="position:relative;z-index:4">
+
+    <!-- ---------- VARIANT 1: EDITORIAL ---------- -->
+    <sc-if value="{{ isV1 }}" hint-placeholder-val="{{ true }}">
+    <section style="max-width:1320px;margin:0 auto;padding:30px 48px 70px;display:grid;grid-template-columns:1.05fr .95fr;gap:60px;align-items:center">
+      <div style="animation:floatUp .6s ease both">
+        <div style="font-family:'Saira Condensed',sans-serif;font-weight:800;letter-spacing:.22em;font-size:13px;color:#5d8bff;text-transform:uppercase;margin-bottom:26px">Champions League · 1960 — 2025</div>
+        <div style="font-family:'Anton',sans-serif;font-size:70px;line-height:.9;letter-spacing:.01em;color:#f3f7ff;text-shadow:0 0 40px rgba(63,118,255,.45);text-transform:uppercase">Road to <span style="color:#3f76ff">Glory</span></div>
+        <h1 style="font-family:'Anton',sans-serif;font-size:74px;line-height:.94;letter-spacing:.005em;color:#fff;margin:22px 0 0;text-transform:uppercase">Role o dado.<br>Monte seu clube<br><span style="color:#9db8ff">dos sonhos</span></h1>
+        <p style="max-width:430px;font-size:18px;line-height:1.5;color:#9fb0d8;margin-top:26px;font-weight:400">Sai um clube campeão e uma temporada. Monte os 11, jogue a fase de liga e o mata-mata — seu time faz 7 a 0?</p>
+        <div style="display:flex;gap:16px;align-items:center;margin-top:34px;flex-wrap:wrap">
+          <button onClick="{{ goMontar }}" style="position:relative;overflow:hidden;display:flex;align-items:center;gap:10px;background:linear-gradient(180deg,#3f76ff,#1f4fe0);border:none;color:#fff;font-family:'Saira Condensed',sans-serif;font-weight:800;font-size:21px;letter-spacing:.04em;text-transform:uppercase;padding:16px 30px;border-radius:4px;cursor:pointer;box-shadow:0 10px 30px rgba(47,109,255,.5)" style-hover="box-shadow:0 14px 38px rgba(47,109,255,.7)">Jogar agora →</button>
+          <button style="position:relative;display:flex;align-items:center;gap:10px;background:rgba(255,255,255,.04);border:1px solid rgba(150,180,255,.4);color:#eaf0ff;font-family:'Saira Condensed',sans-serif;font-weight:800;font-size:21px;letter-spacing:.04em;text-transform:uppercase;padding:16px 28px;border-radius:4px;cursor:pointer" style-hover="border-color:#5d8bff;background:rgba(63,118,255,.12)">Com amigos
+            <span style="position:absolute;top:-12px;right:-14px;background:#d8b65f;color:#1a1303;font-family:'Saira Condensed',sans-serif;font-weight:800;font-size:11px;letter-spacing:.08em;padding:3px 8px;border-radius:3px;transform:rotate(6deg);box-shadow:0 4px 10px rgba(0,0,0,.4)">NOVO</span>
+          </button>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:44px;max-width:560px">
+          <sc-for list="{{ steps }}" as="st" hint-placeholder-count="3">
+            <div style="background:rgba(255,255,255,.035);border:1px solid rgba(150,180,255,.16);border-radius:5px;padding:16px 16px 18px">
+              <div style="font-family:'Anton',sans-serif;font-size:30px;color:#3f76ff;line-height:1">{{ st.n }}</div>
+              <div style="font-family:'Saira Condensed',sans-serif;font-weight:800;font-size:18px;letter-spacing:.04em;text-transform:uppercase;color:#fff;margin-top:8px">{{ st.t }}</div>
+              <div style="font-size:13px;color:#8ea3cf;margin-top:3px;line-height:1.35">{{ st.d }}</div>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+
+      <div style="animation:floatUp .7s ease both">
+        <dc-import name="Pitch" lineup="{{ lineup }}" hint-size="100%,560px"></dc-import>
+      </div>
+    </section>
+    </sc-if>
+
+    <!-- ---------- VARIANT 2: CENTERED STARBURST ---------- -->
+    <sc-if value="{{ isV2 }}" hint-placeholder-val="{{ true }}">
+    <section style="max-width:1100px;margin:0 auto;padding:20px 48px 80px;text-align:center;display:flex;flex-direction:column;align-items:center;animation:floatUp .6s ease both">
+      <div style="position:relative;display:flex;align-items:center;justify-content:center;margin:10px 0 4px">
+        <div style="position:absolute;width:420px;height:420px;border-radius:50%;background:conic-gradient(from 0deg, rgba(63,118,255,.0),rgba(63,118,255,.35),rgba(63,118,255,0),rgba(157,184,255,.35),rgba(63,118,255,0));filter:blur(2px);animation:glowPulse 5s ease-in-out infinite"></div>
+        <div style="position:relative;font-family:'Anton',sans-serif;font-size:104px;line-height:.84;color:#f3f7ff;text-shadow:0 0 50px rgba(63,118,255,.6);text-transform:uppercase;text-align:center">Road to<br><span style="color:#3f76ff">Glory</span></div>
+      </div>
+      <div style="font-family:'Saira Condensed',sans-serif;font-weight:800;letter-spacing:.24em;font-size:13px;color:#5d8bff;text-transform:uppercase;margin-top:8px">Champions League · 1960 — 2025</div>
+      <h1 style="font-family:'Anton',sans-serif;font-size:88px;line-height:.9;color:#fff;margin:18px 0 0;text-transform:uppercase">Monte seu clube <span style="color:#9db8ff">dos sonhos</span></h1>
+      <p style="max-width:520px;font-size:18px;line-height:1.5;color:#9fb0d8;margin-top:20px">Role o dado: sai um clube campeão e uma temporada. Monte os 11, jogue o mata-mata — seu time faz 7 a 0?</p>
+      <div style="display:flex;gap:16px;align-items:center;margin-top:30px">
+        <button onClick="{{ goMontar }}" style="display:flex;align-items:center;gap:10px;background:linear-gradient(180deg,#3f76ff,#1f4fe0);border:none;color:#fff;font-family:'Saira Condensed',sans-serif;font-weight:800;font-size:22px;letter-spacing:.04em;text-transform:uppercase;padding:17px 34px;border-radius:4px;cursor:pointer;box-shadow:0 10px 30px rgba(47,109,255,.5)" style-hover="box-shadow:0 14px 40px rgba(47,109,255,.75)">Rolar o dado →</button>
+        <button style="position:relative;background:rgba(255,255,255,.04);border:1px solid rgba(150,180,255,.4);color:#eaf0ff;font-family:'Saira Condensed',sans-serif;font-weight:800;font-size:22px;letter-spacing:.04em;text-transform:uppercase;padding:17px 30px;border-radius:4px;cursor:pointer" style-hover="border-color:#5d8bff;background:rgba(63,118,255,.12)">Com amigos
+          <span style="position:absolute;top:-12px;right:-14px;background:#d8b65f;color:#1a1303;font-family:'Saira Condensed',sans-serif;font-weight:800;font-size:11px;letter-spacing:.08em;padding:3px 8px;border-radius:3px;transform:rotate(6deg)">NOVO</span>
+        </button>
+      </div>
+      <div style="margin-top:50px;width:100%;max-width:760px">
+        <dc-import name="Pitch" lineup="{{ lineup }}" horizontal="{{ true }}" hint-size="100%,420px"></dc-import>
+      </div>
+    </section>
+    </sc-if>
+
+    <!-- ---------- VARIANT 4: EDITORIAL + IMMERSIVE TITLE ---------- -->
+    <sc-if value="{{ isV4 }}" hint-placeholder-val="{{ false }}">
+    <section style="position:relative;max-width:1320px;margin:0 auto;padding:30px 48px 70px;display:grid;grid-template-columns:1.05fr .95fr;gap:60px;align-items:center">
+      <div style="position:absolute;left:40px;top:-10px;font-family:'Anton',sans-serif;font-size:220px;line-height:.7;color:rgba(63,118,255,.07);pointer-events:none;z-index:0;text-transform:uppercase">Glory</div>
+      <div style="position:relative;z-index:2;animation:floatUp .6s ease both">
+        <div style="font-family:'Saira Condensed',sans-serif;font-weight:800;letter-spacing:.24em;font-size:13px;color:#5d8bff;text-transform:uppercase;margin-bottom:20px">A noite é nossa · Champions League</div>
+        <h1 style="font-family:'Anton',sans-serif;font-size:92px;line-height:.88;color:#fff;text-transform:uppercase;text-shadow:0 0 50px rgba(0,0,0,.6)">Role o dado.<br>Monte o time<br><span style="color:#3f76ff">dos sonhos</span></h1>
+        <p style="max-width:430px;font-size:18px;line-height:1.5;color:#b3c2e6;margin-top:24px;font-weight:400">Vários clube campeões. Uma temporada. Monte seus 11 dos sonhos, entre em campo sob as estrelas e alcance a glória.</p>
+        <div style="display:flex;gap:16px;align-items:center;margin-top:32px;flex-wrap:wrap">
+          <button onClick="{{ goMontar }}" style="position:relative;overflow:hidden;display:flex;align-items:center;gap:10px;background:linear-gradient(180deg,#3f76ff,#1f4fe0);border:none;color:#fff;font-family:'Saira Condensed',sans-serif;font-weight:800;font-size:21px;letter-spacing:.04em;text-transform:uppercase;padding:16px 30px;border-radius:4px;cursor:pointer;box-shadow:0 10px 30px rgba(47,109,255,.5)" style-hover="box-shadow:0 14px 38px rgba(47,109,255,.7)">Jogar agora →</button>
+          <button style="position:relative;display:flex;align-items:center;gap:10px;background:rgba(255,255,255,.04);border:1px solid rgba(150,180,255,.4);color:#eaf0ff;font-family:'Saira Condensed',sans-serif;font-weight:800;font-size:21px;letter-spacing:.04em;text-transform:uppercase;padding:16px 28px;border-radius:4px;cursor:pointer" style-hover="border-color:#5d8bff;background:rgba(63,118,255,.12)">Com amigos
+            <span style="position:absolute;top:-12px;right:-14px;background:#d8b65f;color:#1a1303;font-family:'Saira Condensed',sans-serif;font-weight:800;font-size:11px;letter-spacing:.08em;padding:3px 8px;border-radius:3px;transform:rotate(6deg);box-shadow:0 4px 10px rgba(0,0,0,.4)">NOVO</span>
+          </button>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:44px;max-width:560px">
+          <sc-for list="{{ steps }}" as="st" hint-placeholder-count="3">
+            <div style="background:rgba(255,255,255,.035);border:1px solid rgba(150,180,255,.16);border-radius:5px;padding:16px 16px 18px">
+              <div style="font-family:'Anton',sans-serif;font-size:30px;color:#3f76ff;line-height:1">{{ st.n }}</div>
+              <div style="font-family:'Saira Condensed',sans-serif;font-weight:800;font-size:18px;letter-spacing:.04em;text-transform:uppercase;color:#fff;margin-top:8px">{{ st.t }}</div>
+              <div style="font-size:13px;color:#8ea3cf;margin-top:3px;line-height:1.35">{{ st.d }}</div>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+      <div style="position:relative;z-index:2;animation:floatUp .7s ease both">
+        <dc-import name="Pitch" lineup="{{ lineup }}" hint-size="100%,560px"></dc-import>
+      </div>
+    </section>
+    </sc-if>
+
+    <!-- ---------- VARIANT 3: IMMERSIVE ---------- -->
+    <sc-if value="{{ isV3 }}" hint-placeholder-val="{{ true }}">
+    <section style="position:relative;max-width:1320px;margin:0 auto;padding:40px 48px 90px;min-height:72vh;display:flex;align-items:center;animation:floatUp .6s ease both">
+      <div style="position:absolute;right:20px;top:50%;transform:translateY(-50%);width:560px;opacity:.72;filter:saturate(.9)">
+        <dc-import name="Pitch" lineup="{{ lineup }}" hint-size="100%,560px"></dc-import>
+      </div>
+      <div style="position:absolute;left:48px;top:30px;font-family:'Anton',sans-serif;font-size:240px;line-height:.7;color:rgba(63,118,255,.08);pointer-events:none;z-index:0;text-transform:uppercase">Glory</div>
+      <div style="position:relative;z-index:2;max-width:620px">
+        <div style="font-family:'Saira Condensed',sans-serif;font-weight:800;letter-spacing:.24em;font-size:13px;color:#5d8bff;text-transform:uppercase;margin-bottom:20px">A noite é nossa · Champions League</div>
+        <h1 style="font-family:'Anton',sans-serif;font-size:96px;line-height:.88;color:#fff;text-transform:uppercase;text-shadow:0 0 50px rgba(0,0,0,.6)">Role o dado.<br>Monte o time<br><span style="color:#3f76ff">dos sonhos</span></h1>
+        <p style="max-width:440px;font-size:19px;line-height:1.5;color:#b3c2e6;margin-top:24px">Um clube campeão, uma temporada lendária e onze craques. Entre em campo sob as estrelas e alcance a glória.</p>
+        <div style="display:flex;gap:16px;align-items:center;margin-top:34px">
+          <button onClick="{{ goMontar }}" style="display:flex;align-items:center;gap:10px;background:linear-gradient(180deg,#3f76ff,#1f4fe0);border:none;color:#fff;font-family:'Saira Condensed',sans-serif;font-weight:800;font-size:22px;letter-spacing:.04em;text-transform:uppercase;padding:17px 34px;border-radius:4px;cursor:pointer;box-shadow:0 10px 34px rgba(47,109,255,.55)" style-hover="box-shadow:0 14px 44px rgba(47,109,255,.8)">Entrar em campo →</button>
+          <button style="position:relative;background:rgba(255,255,255,.04);border:1px solid rgba(150,180,255,.4);color:#eaf0ff;font-family:'Saira Condensed',sans-serif;font-weight:800;font-size:22px;letter-spacing:.04em;text-transform:uppercase;padding:17px 30px;border-radius:4px;cursor:pointer" style-hover="border-color:#5d8bff;background:rgba(63,118,255,.12)">Com amigos
+            <span style="position:absolute;top:-12px;right:-14px;background:#d8b65f;color:#1a1303;font-family:'Saira Condensed',sans-serif;font-weight:800;font-size:11px;letter-spacing:.08em;padding:3px 8px;border-radius:3px;transform:rotate(6deg)">NOVO</span>
+          </button>
+        </div>
+      </div>
+    </section>
+    </sc-if>
+
+    <!-- footer stats -->
+    <div style="max-width:1320px;margin:0 auto;padding:0 48px 40px;display:flex;align-items:center;gap:22px;font-size:14px;color:#8ea3cf">
+      <span><b style="color:#fff;font-weight:700">19</b> clubes</span><span style="opacity:.4">·</span>
+      <span><b style="color:#fff;font-weight:700">36</b> elencos</span><span style="opacity:.4">·</span>
+      <span><b style="color:#fff;font-weight:700">611</b> jogadores</span><span style="opacity:.4">·</span>
+      <span style="color:#5d8bff;cursor:pointer;text-decoration:underline;text-underline-offset:3px">Discorda de alguma avaliação?</span>
+    </div>
+
+    <!-- variant switcher -->
+    <div style="position:fixed;bottom:24px;left:50%;transform:translateX(-50%);z-index:20;display:flex;align-items:center;gap:6px;background:rgba(10,22,55,.75);backdrop-filter:blur(10px);border:1px solid rgba(150,180,255,.25);border-radius:100px;padding:6px">
+      <span style="font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:#7e93c0;padding:0 10px 0 8px;font-weight:600">Variação</span>
+      <sc-for list="{{ variantBtns }}" as="v" hint-placeholder-count="3">
+        <button onClick="{{ v.set }}" style="width:34px;height:34px;border-radius:50%;border:none;cursor:pointer;font-family:'Saira',sans-serif;font-weight:700;font-size:14px;background:{{ v.bg }};color:{{ v.fg }}">{{ v.label }}</button>
+      </sc-for>
+    </div>
+  </main>
+  </sc-if>
+
+  <!-- ============================================================= MONTAR -->
+  <sc-if value="{{ isMontar }}" hint-placeholder-val="{{ true }}">
+  <main style="position:relative;z-index:4;max-width:1320px;margin:0 auto;padding:20px 48px 80px;animation:floatUp .5s ease both">
+    <button onClick="{{ goHome }}" style="background:none;border:none;color:#8ea3cf;font-family:'Saira',sans-serif;font-size:14px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:8px;margin-bottom:14px" style-hover="color:#fff">← Início</button>
+
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:12px">
+      <h2 style="font-family:'Anton',sans-serif;font-size:46px;line-height:.92;color:#fff;text-transform:uppercase;margin:0">Monte seu onze</h2>
+      <div style="font-family:'Saira Condensed',sans-serif;font-weight:800;letter-spacing:.16em;font-size:13px;color:#9db8ff;text-transform:uppercase">{{ configLabel }}</div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:340px 1fr 310px;gap:32px;align-items:start">
+
+      <!-- ===== LEFT: controls ===== -->
+      <div>
+        <div style="border:1px solid rgba(150,180,255,.22);border-radius:10px;background:rgba(255,255,255,.03);padding:22px 22px 24px;box-shadow:0 14px 40px rgba(0,0,0,.3)">
+          <div style="font-family:'Saira Condensed',sans-serif;font-weight:800;letter-spacing:.18em;font-size:12px;color:#5d8bff;text-transform:uppercase">Formação</div>
+          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:12px">
+            <sc-for list="{{ formationBtns }}" as="f" hint-placeholder-count="8">
+              <button onClick="{{ f.set }}" style="border:1px solid {{ f.bd }};background:{{ f.bg }};color:{{ f.fg }};font-family:'Saira Condensed',sans-serif;font-weight:800;font-size:15px;letter-spacing:.02em;padding:11px 0;border-radius:5px;cursor:pointer;transition:all .15s">{{ f.label }}</button>
+            </sc-for>
+          </div>
+
+          <div style="font-family:'Saira Condensed',sans-serif;font-weight:800;letter-spacing:.18em;font-size:12px;color:#5d8bff;text-transform:uppercase;margin-top:22px">Estilo</div>
+          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:12px;border:1px solid rgba(150,180,255,.18);border-radius:6px;padding:4px">
+            <sc-for list="{{ styleBtns }}" as="s" hint-placeholder-count="3">
+              <button onClick="{{ s.set }}" style="border:none;background:{{ s.bg }};color:{{ s.fg }};font-family:'Saira',sans-serif;font-weight:600;font-size:13px;padding:9px 0;border-radius:4px;cursor:pointer;transition:all .15s">{{ s.label }}</button>
+            </sc-for>
+          </div>
+
+          <div style="font-family:'Saira Condensed',sans-serif;font-weight:800;letter-spacing:.18em;font-size:12px;color:#5d8bff;text-transform:uppercase;margin-top:22px">Modo · Dificuldade</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:12px;border:1px solid rgba(150,180,255,.18);border-radius:6px;padding:4px">
+            <sc-for list="{{ modeBtns }}" as="m" hint-placeholder-count="2">
+              <button onClick="{{ m.set }}" style="border:none;background:{{ m.bg }};color:{{ m.fg }};font-family:'Saira',sans-serif;font-weight:600;font-size:13px;padding:9px 0;border-radius:4px;cursor:pointer;transition:all .15s">{{ m.label }}</button>
+            </sc-for>
+          </div>
+        </div>
+
+        <!-- status -->
+        <sc-if value="{{ notRolled }}" hint-placeholder-val="{{ true }}">
+        <div style="margin-top:16px;border:1px dashed rgba(150,180,255,.3);border-radius:10px;padding:22px;text-align:center;color:#8ea3cf;font-size:14px;line-height:1.45">Role para sortear um clube e uma temporada da Champions</div>
+        </sc-if>
+        <sc-if value="{{ rolled }}" hint-placeholder-val="{{ false }}">
+        <div style="position:relative;margin-top:16px;border:1px solid rgba(150,180,255,.25);border-radius:10px;overflow:hidden;background:linear-gradient(120deg,rgba(63,118,255,.18),rgba(63,118,255,.02));padding:18px 20px;animation:floatUp .4s ease both">
+          <div style="position:absolute;inset:0;overflow:hidden;pointer-events:none"><div style="position:absolute;top:0;left:0;width:60%;height:100%;background:linear-gradient(90deg,transparent,rgba(255,255,255,.12),transparent);animation:sweep 2.5s ease-in-out infinite"></div></div>
+          <div style="font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:#9db8ff;font-weight:700">Clube sorteado</div>
+          <div style="font-family:'Anton',sans-serif;font-size:32px;line-height:1;color:#fff;margin-top:4px;text-transform:uppercase">{{ club.name }}</div>
+          <div style="display:inline-flex;align-items:center;gap:7px;margin-top:9px;background:rgba(0,0,0,.25);border:1px solid rgba(150,180,255,.25);border-radius:100px;padding:4px 12px;font-size:12px;color:#cdd9ff;font-weight:600"><span style="color:#d8b65f">★</span> Campeão {{ club.season }}</div>
+        </div>
+        </sc-if>
+
+        <!-- primary action -->
+        <sc-if value="{{ notRolled }}" hint-placeholder-val="{{ true }}">
+        <button onClick="{{ roll }}" style="margin-top:16px;width:100%;display:flex;align-items:center;justify-content:center;gap:12px;background:linear-gradient(180deg,#3f76ff,#1f4fe0);border:none;color:#fff;font-family:'Saira Condensed',sans-serif;font-weight:800;font-size:24px;letter-spacing:.05em;text-transform:uppercase;padding:18px;border-radius:6px;cursor:pointer;box-shadow:0 12px 32px rgba(47,109,255,.5)" style-hover="box-shadow:0 16px 42px rgba(47,109,255,.75)">Rolar <span style="font-size:22px;animation:{{ dieAnim }}">🎲</span></button>
+        </sc-if>
+        <sc-if value="{{ rolled }}" hint-placeholder-val="{{ false }}">
+        <button onClick="{{ goResultado }}" style="margin-top:16px;width:100%;display:flex;align-items:center;justify-content:center;gap:10px;background:linear-gradient(180deg,#3f76ff,#1f4fe0);border:none;color:#fff;font-family:'Saira Condensed',sans-serif;font-weight:800;font-size:22px;letter-spacing:.04em;text-transform:uppercase;padding:16px;border-radius:6px;cursor:pointer;box-shadow:0 12px 32px rgba(47,109,255,.5);animation:floatUp .4s ease both" style-hover="box-shadow:0 16px 42px rgba(47,109,255,.75)">Simular partida →</button>
+        <button onClick="{{ roll }}" style="margin-top:10px;width:100%;background:rgba(255,255,255,.04);border:1px solid rgba(150,180,255,.3);color:#cdd9ff;font-family:'Saira',sans-serif;font-weight:600;font-size:14px;padding:11px;border-radius:6px;cursor:pointer" style-hover="border-color:#5d8bff">🎲 Sortear outro clube</button>
+        </sc-if>
+      </div>
+
+      <!-- ===== CENTER: pitch ===== -->
+      <div style="position:relative;aspect-ratio:3 / 3.6;border-radius:12px;overflow:hidden;background:linear-gradient(160deg,#0d2a18,#0a2114);border:1px solid rgba(150,180,255,.25);box-shadow:0 24px 60px rgba(0,0,0,.5),inset 0 0 80px rgba(0,0,0,.35)">
+        <div style="position:absolute;inset:0;background:repeating-linear-gradient(180deg, rgba(255,255,255,.035) 0 8%, rgba(0,0,0,0) 8% 16%)"></div>
+        <div style="position:absolute;top:-25%;left:50%;transform:translateX(-50%);width:80%;height:60%;background:radial-gradient(closest-side, rgba(63,118,255,.18), rgba(63,118,255,0) 70%);pointer-events:none"></div>
+        <div style="position:absolute;inset:16px;border:2px solid rgba(255,255,255,.16);border-radius:4px"></div>
+        <div style="position:absolute;left:16px;right:16px;top:50%;height:2px;background:rgba(255,255,255,.16)"></div>
+        <div style="position:absolute;left:50%;top:50%;width:120px;height:120px;border:2px solid rgba(255,255,255,.16);border-radius:50%;transform:translate(-50%,-50%)"></div>
+        <div style="position:absolute;left:50%;top:50%;width:7px;height:7px;background:rgba(255,255,255,.4);border-radius:50%;transform:translate(-50%,-50%)"></div>
+        <div style="position:absolute;left:50%;top:16px;width:150px;height:60px;border:2px solid rgba(255,255,255,.16);border-top:none;transform:translateX(-50%)"></div>
+        <div style="position:absolute;left:50%;bottom:16px;width:150px;height:60px;border:2px solid rgba(255,255,255,.16);border-bottom:none;transform:translateX(-50%)"></div>
+
+        <sc-for list="{{ slots }}" as="p" hint-placeholder-count="11">
+          <div style="position:absolute;left:{{ p.left }};top:{{ p.top }};transform:translate(-50%,-50%);display:flex;flex-direction:column;align-items:center;gap:5px;z-index:2">
+            <sc-if value="{{ p.filled }}" hint-placeholder-val="{{ false }}">
+              <div style="width:44px;height:44px;border-radius:50%;background:radial-gradient(circle at 35% 30%, #2a52b8, #0e2356);border:2px solid #5d8bff;display:flex;align-items:center;justify-content:center;font-family:'Saira',sans-serif;font-weight:800;font-size:15px;color:#fff;box-shadow:0 6px 16px rgba(0,0,0,.5),0 0 14px rgba(63,118,255,.5)">{{ p.num }}</div>
+              <div style="font-family:'Saira',sans-serif;font-size:11px;font-weight:600;color:#eaf0ff;background:rgba(5,9,28,.7);padding:1px 7px;border-radius:3px;white-space:nowrap">{{ p.name }}</div>
+            </sc-if>
+            <sc-if value="{{ p.empty }}" hint-placeholder-val="{{ true }}">
+              <div style="width:44px;height:44px;border-radius:50%;border:2px dashed rgba(150,180,255,.45);display:flex;align-items:center;justify-content:center;font-family:'Saira Condensed',sans-serif;font-weight:800;font-size:13px;color:#9db8ff">{{ p.pos }}</div>
+              <div style="font-family:'Saira',sans-serif;font-size:10px;font-weight:600;letter-spacing:.06em;color:#7e93c0">{{ p.pos }}</div>
+            </sc-if>
+          </div>
+        </sc-for>
+      </div>
+
+      <!-- ===== RIGHT: box score ===== -->
+      <div style="border:1px solid rgba(150,180,255,.22);border-radius:10px;background:rgba(255,255,255,.03);padding:20px 20px 22px;box-shadow:0 14px 40px rgba(0,0,0,.3)">
+        <div style="display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid rgba(150,180,255,.18);padding-bottom:12px">
+          <div style="font-family:'Saira Condensed',sans-serif;font-weight:800;letter-spacing:.14em;font-size:12px;color:#fff;text-transform:uppercase">Box Score · {{ assigned }}/11</div>
+          <div style="width:22px;height:2px;background:#d8b65f"></div>
+        </div>
+        <div style="display:flex;gap:16px;margin-top:12px;font-size:11px;letter-spacing:.06em;text-transform:uppercase;font-weight:700;color:#8ea3cf">
+          <span style="display:flex;align-items:center;gap:6px"><span style="width:9px;height:9px;background:#3f76ff;border-radius:2px"></span>Ataque</span>
+          <span style="display:flex;align-items:center;gap:6px"><span style="width:9px;height:9px;background:#9fb0d8;border-radius:2px"></span>Defesa</span>
+        </div>
+        <div style="margin-top:8px">
+          <sc-for list="{{ boxRows }}" as="r" hint-placeholder-count="11">
+            <div style="display:flex;align-items:center;gap:12px;padding:9px 0;border-bottom:1px solid rgba(150,180,255,.1)">
+              <div style="font-family:'Saira Condensed',sans-serif;font-weight:800;font-size:13px;color:#cdd9ff;min-width:38px">{{ r.pos }}</div>
+              <div style="flex:1;display:flex;flex-direction:column;gap:3px">
+                <div style="height:5px;border-radius:3px;background:rgba(255,255,255,.07);overflow:hidden"><div style="height:100%;width:{{ r.atkW }};background:#3f76ff;border-radius:3px"></div></div>
+                <div style="height:5px;border-radius:3px;background:rgba(255,255,255,.07);overflow:hidden"><div style="height:100%;width:{{ r.defW }};background:#9fb0d8;border-radius:3px"></div></div>
+              </div>
+              <div style="font-family:'Saira',sans-serif;font-size:12px;font-weight:600;color:{{ r.nameColor }};min-width:64px;text-align:right;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ r.name }}</div>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+
+    </div>
+  </main>
+  </sc-if>
+
+  <!-- ============================================================= RESULTADO -->
+  <sc-if value="{{ isResultado }}" hint-placeholder-val="{{ true }}">
+  <main style="position:relative;z-index:4;max-width:1100px;margin:0 auto;padding:20px 48px 90px;animation:floatUp .5s ease both">
+    <button onClick="{{ goMontar }}" style="background:none;border:none;color:#8ea3cf;font-family:'Saira',sans-serif;font-size:14px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:8px;margin-bottom:14px" style-hover="color:#fff">← Refazer escalação</button>
+
+    <div style="text-align:center">
+      <div style="font-family:'Saira Condensed',sans-serif;font-weight:800;letter-spacing:.22em;font-size:13px;color:#5d8bff;text-transform:uppercase">Final · Champions League · {{ club.season }}</div>
+      <div style="display:flex;align-items:center;justify-content:center;gap:34px;margin-top:18px">
+        <div style="text-align:right;min-width:230px">
+          <div style="font-family:'Anton',sans-serif;font-size:40px;color:#fff;line-height:1;text-transform:uppercase">{{ club.name }}</div>
+          <div style="font-size:13px;color:#8ea3cf;margin-top:4px">Seu time</div>
+        </div>
+        <div style="font-family:'Anton',sans-serif;font-size:108px;line-height:.85;color:#f3f7ff;text-shadow:0 0 50px rgba(63,118,255,.55)">7<span style="color:#3f76ff">—</span>0</div>
+        <div style="text-align:left;min-width:230px">
+          <div style="font-family:'Anton',sans-serif;font-size:40px;color:#7e93c0;line-height:1;text-transform:uppercase">{{ rival }}</div>
+          <div style="font-size:13px;color:#8ea3cf;margin-top:4px">Adversário</div>
+        </div>
+      </div>
+      <div style="display:inline-flex;align-items:center;gap:10px;margin-top:18px;background:rgba(216,182,95,.12);border:1px solid rgba(216,182,95,.4);border-radius:100px;padding:8px 20px;color:#e8cd84;font-family:'Saira Condensed',sans-serif;font-weight:800;font-size:16px;letter-spacing:.06em;text-transform:uppercase">🏆 Campeão da Europa</div>
+    </div>
+
+    <div style="margin-top:42px;max-width:560px;margin-left:auto;margin-right:auto">
+      <div style="font-family:'Saira Condensed',sans-serif;font-weight:800;letter-spacing:.16em;font-size:13px;color:#9db8ff;text-transform:uppercase;margin-bottom:8px">Gols da partida</div>
+      <sc-for list="{{ scorers }}" as="g" hint-placeholder-count="7">
+        <div style="display:flex;align-items:center;gap:16px;padding:13px 6px;border-bottom:1px solid rgba(150,180,255,.12)">
+          <div style="font-family:'Saira',sans-serif;font-weight:700;font-size:14px;color:#3f76ff;min-width:42px">{{ g.min }}'</div>
+          <div style="width:30px;height:30px;border-radius:50%;border:1px solid rgba(150,180,255,.4);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#cdd9ff">{{ g.n }}</div>
+          <div style="font-size:17px;color:#fff;font-weight:500;flex:1">{{ g.name }}</div>
+          <div style="font-size:18px;color:#d8b65f">⚽</div>
+        </div>
+      </sc-for>
+    </div>
+
+    <div style="display:flex;gap:14px;justify-content:center;margin-top:36px">
+      <button onClick="{{ roll }}" style="display:flex;align-items:center;gap:10px;background:linear-gradient(180deg,#3f76ff,#1f4fe0);border:none;color:#fff;font-family:'Saira Condensed',sans-serif;font-weight:800;font-size:20px;letter-spacing:.04em;text-transform:uppercase;padding:15px 30px;border-radius:4px;cursor:pointer;box-shadow:0 10px 30px rgba(47,109,255,.5)" style-hover="box-shadow:0 14px 40px rgba(47,109,255,.75)">🎲 Jogar de novo</button>
+      <button onClick="{{ goHome }}" style="background:rgba(255,255,255,.04);border:1px solid rgba(150,180,255,.4);color:#eaf0ff;font-family:'Saira Condensed',sans-serif;font-weight:800;font-size:20px;letter-spacing:.04em;text-transform:uppercase;padding:15px 28px;border-radius:4px;cursor:pointer" style-hover="border-color:#5d8bff;background:rgba(63,118,255,.12)">Início</button>
+    </div>
+  </main>
+  </sc-if>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  constructor(props){
+    super(props);
+    const heroXI = [
+      {n:1,name:'Casillas',x:50,y:90},{n:3,name:'Maldini',x:20,y:70},{n:6,name:'Van Dijk',x:40,y:73},
+      {n:5,name:'Ramos',x:60,y:73},{n:2,name:'Carvajal',x:80,y:70},{n:8,name:'Kroos',x:30,y:46},
+      {n:10,name:'Modrić',x:50,y:52},{n:22,name:'Kaká',x:70,y:46},{n:11,name:'Vinícius',x:22,y:22},
+      {n:9,name:'Benzema',x:50,y:16},{n:7,name:'Cristiano',x:78,y:22}
+    ];
+    this.heroXI = heroXI;
+    this.clubs = [
+      {name:'Real Madrid', season:'2016/17', formation:'4-3-3', rival:'Juventus',
+        blurb:'A era das conquistas seguidas. Velocidade pelos lados e controle no meio.',
+        xi:[{n:1,name:'Navas',x:50,y:90},{n:2,name:'Carvajal',x:80,y:70},{n:4,name:'Ramos',x:60,y:73},{n:5,name:'Varane',x:40,y:73},{n:12,name:'Marcelo',x:20,y:70},{n:14,name:'Casemiro',x:50,y:54},{n:8,name:'Kroos',x:30,y:46},{n:10,name:'Modrić',x:70,y:46},{n:11,name:'Bale',x:78,y:22},{n:9,name:'Benzema',x:50,y:16},{n:7,name:'Ronaldo',x:22,y:22}]},
+      {name:'Barcelona', season:'2010/11', formation:'4-3-3', rival:'Man United',
+        blurb:'O auge do tiki-taka. Posse infinita e triangulações no meio-campo.',
+        xi:[{n:1,name:'Valdés',x:50,y:90},{n:2,name:'Alves',x:80,y:70},{n:3,name:'Piqué',x:60,y:73},{n:14,name:'Mascherano',x:40,y:73},{n:22,name:'Abidal',x:20,y:70},{n:16,name:'Busquets',x:50,y:54},{n:6,name:'Xavi',x:30,y:46},{n:8,name:'Iniesta',x:70,y:46},{n:10,name:'Messi',x:50,y:16},{n:7,name:'Villa',x:22,y:22},{n:17,name:'Pedro',x:78,y:22}]},
+      {name:'Bayern', season:'2019/20', formation:'4-3-3', rival:'PSG',
+        blurb:'Pressão alta e ataque demolidor. O time do triplete invicto.',
+        xi:[{n:1,name:'Neuer',x:50,y:90},{n:32,name:'Kimmich',x:80,y:70},{n:17,name:'Boateng',x:60,y:73},{n:27,name:'Alaba',x:40,y:73},{n:19,name:'Davies',x:20,y:70},{n:6,name:'Thiago',x:50,y:54},{n:18,name:'Goretzka',x:30,y:46},{n:25,name:'Müller',x:70,y:46},{n:22,name:'Gnabry',x:22,y:22},{n:9,name:'Lewandowski',x:50,y:16},{n:29,name:'Coman',x:78,y:22}]},
+      {name:'Liverpool', season:'2018/19', formation:'4-3-3', rival:'Tottenham',
+        blurb:'Intensidade total. Laterais que viram pontas e um tridente letal.',
+        xi:[{n:1,name:'Alisson',x:50,y:90},{n:66,name:'Arnold',x:80,y:70},{n:32,name:'Matip',x:60,y:73},{n:4,name:'Van Dijk',x:40,y:73},{n:26,name:'Robertson',x:20,y:70},{n:3,name:'Fabinho',x:50,y:54},{n:14,name:'Henderson',x:30,y:46},{n:5,name:'Wijnaldum',x:70,y:46},{n:11,name:'Salah',x:78,y:22},{n:9,name:'Firmino',x:50,y:16},{n:10,name:'Mané',x:22,y:22}]},
+      {name:'Milan', season:'2006/07', formation:'4-3-1-2', rival:'Liverpool',
+        blurb:'Aula de futebol italiano. Defesa blindada e o gênio criativo no meio.',
+        xi:[{n:1,name:'Dida',x:50,y:90},{n:44,name:'Oddo',x:80,y:70},{n:13,name:'Nesta',x:60,y:73},{n:3,name:'Maldini',x:40,y:73},{n:18,name:'Jankulovski',x:20,y:70},{n:8,name:'Gattuso',x:30,y:50},{n:21,name:'Pirlo',x:50,y:56},{n:23,name:'Ambrosini',x:70,y:50},{n:22,name:'Kaká',x:50,y:32},{n:10,name:'Seedorf',x:28,y:18},{n:9,name:'Inzaghi',x:62,y:16}]},
+      {name:'Inter', season:'2009/10', formation:'4-3-3', rival:'Bayern',
+        blurb:'O triplete de Mourinho. Contra-ataque cirúrgico e raça de campeão.',
+        xi:[{n:12,name:'Júlio César',x:50,y:90},{n:13,name:'Maicon',x:80,y:70},{n:6,name:'Lúcio',x:60,y:73},{n:25,name:'Samuel',x:40,y:73},{n:26,name:'Chivu',x:20,y:70},{n:4,name:'Zanetti',x:30,y:46},{n:19,name:'Cambiasso',x:50,y:54},{n:10,name:'Sneijder',x:70,y:46},{n:22,name:'Milito',x:50,y:16},{n:27,name:'Pandev',x:22,y:22},{n:9,name:"Eto'o",x:78,y:22}]}
+    ];
+    this.stars = Array.from({length:48}).map(()=>({
+      left:(Math.random()*100).toFixed(2)+'%',
+      top:(Math.random()*100).toFixed(2)+'%',
+      size:(Math.random()*2+1).toFixed(1)+'px',
+      op:(Math.random()*0.6+0.2).toFixed(2),
+      dur:(Math.random()*4+3).toFixed(1)+'s',
+      delay:(Math.random()*4).toFixed(1)+'s'
+    }));
+    // formation slot maps (vertical pitch: attack at top, goal at bottom)
+    this.formations = {
+      '4-3-3':[['GOL',50,90],['LE',20,70],['ZAG',40,73],['ZAG',60,73],['LD',80,70],['VOL',50,54],['MEI',32,44],['MC',68,44],['PE',22,22],['CA',50,16],['PD',78,22]],
+      '4-4-2':[['GOL',50,90],['LE',18,70],['ZAG',40,73],['ZAG',60,73],['LD',82,70],['ME',20,44],['MC',42,47],['MC',58,47],['MD',80,44],['CA',38,18],['CA',62,18]],
+      '4-2-3-1':[['GOL',50,90],['LE',18,70],['ZAG',40,73],['ZAG',60,73],['LD',82,70],['VOL',38,56],['VOL',62,56],['MEI',22,36],['MEI',50,33],['MEI',78,36],['CA',50,16]],
+      '4-2-4':[['GOL',50,90],['LE',18,70],['ZAG',40,73],['ZAG',60,73],['LD',82,70],['MC',38,50],['MC',62,50],['PE',18,22],['CA',40,16],['CA',60,16],['PD',82,22]],
+      '3-5-2':[['GOL',50,90],['ZAG',30,73],['ZAG',50,75],['ZAG',70,73],['LE',13,50],['VOL',38,54],['MC',50,46],['MD',87,50],['MEI',50,30],['CA',38,16],['CA',62,16]],
+      '5-3-2':[['GOL',50,90],['LE',13,66],['ZAG',33,74],['ZAG',50,76],['ZAG',67,74],['LD',87,66],['MC',30,48],['MC',50,50],['MC',70,48],['CA',38,18],['CA',62,18]],
+      '4-5-1':[['GOL',50,90],['LE',18,70],['ZAG',40,73],['ZAG',60,73],['LD',82,70],['ME',15,46],['VOL',38,52],['MC',50,44],['VOL',62,52],['MD',85,46],['CA',50,16]],
+      '3-4-3':[['GOL',50,90],['ZAG',30,73],['ZAG',50,75],['ZAG',70,73],['LE',15,50],['MC',40,50],['MC',60,50],['LD',85,50],['PE',22,20],['CA',50,16],['PD',78,20]]
+    };
+    this.ratings = {GOL:[8,92],LE:[48,68],LD:[48,68],ZAG:[18,93],VOL:[40,82],MC:[60,60],MEI:[80,40],ME:[72,46],MD:[72,46],PE:[86,32],PD:[86,32],CA:[92,20]};
+    this.state = { screen:'home', variant:4, clubIdx:0, rolled:false, rolling:false, scorers:[], formation:'4-3-3', fstyle:'Equilibrado', mode:'Clássico' };
+  }
+
+  rollOnce(){
+    const idx = Math.floor(Math.random()*this.clubs.length);
+    this.setState({ clubIdx:idx, rolled:true, rolling:true, screen:'montar' });
+    clearTimeout(this._t);
+    this._t = setTimeout(()=>this.setState({rolling:false}), 650);
+  }
+
+  buildScorers(club){
+    const attackers = club.xi.filter(p=>p.y<60);
+    const pool = [...attackers, ...attackers, ...club.xi.filter(p=>p.y>=60 && p.y<80)];
+    const mins = [];
+    while(mins.length<7){ const m = Math.floor(Math.random()*89)+2; if(!mins.includes(m)) mins.push(m); }
+    mins.sort((a,b)=>a-b);
+    return mins.map(m=>{ const p = pool[Math.floor(Math.random()*pool.length)]; return {min:m, name:p.name, n:p.n}; });
+  }
+
+  renderVals(){
+    const s = this.state;
+    const club = this.clubs[s.clubIdx];
+    const lineup = (s.screen==='home' || !s.rolled) && s.screen==='home' ? this.heroXI : (s.rolled ? club.xi : this.heroXI);
+    const variantBtns = [1,2,3,4].map(v=>({
+      label:String(v),
+      set:()=>this.setState({variant:v}),
+      bg: s.variant===v ? '#3f76ff' : 'transparent',
+      fg: s.variant===v ? '#fff' : '#9fb0d8'
+    }));
+
+    // montar screen data
+    const formMap = this.formations[s.formation] || this.formations['4-3-3'];
+    const formationBtns = ['4-3-3','4-4-2','4-2-3-1','4-2-4','3-5-2','5-3-2','4-5-1','3-4-3'].map(f=>({
+      label:f, set:()=>this.setState({formation:f}),
+      bg: s.formation===f ? '#3f76ff' : 'rgba(255,255,255,.03)',
+      fg: s.formation===f ? '#fff' : '#cdd9ff',
+      bd: s.formation===f ? '#3f76ff' : 'rgba(150,180,255,.22)'
+    }));
+    const styleBtns = ['Defensivo','Equilibrado','Ofensivo'].map(x=>({
+      label:x, set:()=>this.setState({fstyle:x}),
+      bg: s.fstyle===x ? '#3f76ff' : 'transparent', fg: s.fstyle===x ? '#fff' : '#9fb0d8'
+    }));
+    const modeBtns = ['Clássico','De almanaque'].map(x=>({
+      label:x, set:()=>this.setState({mode:x}),
+      bg: s.mode===x ? '#3f76ff' : 'transparent', fg: s.mode===x ? '#fff' : '#9fb0d8'
+    }));
+    const slots = formMap.map((p,i)=>{
+      const pl = s.rolled ? club.xi[i] : null;
+      return { left:p[1]+'%', top:p[2]+'%', pos:p[0], filled:!!pl, empty:!pl, num: pl?pl.n:'', name: pl?pl.name:'' };
+    });
+    const boxRows = formMap.map((p,i)=>{
+      const r = this.ratings[p[0]] || [50,50];
+      const pl = s.rolled ? club.xi[i] : null;
+      return { pos:p[0], atkW:r[0]+'%', defW:r[1]+'%', name: pl?pl.name:'—', nameColor: pl?'#fff':'#6f84b0' };
+    });
+    const configLabel = s.formation+' · '+s.fstyle+' · '+s.mode;
+    const assigned = s.rolled ? 11 : 0;
+    return {
+      stars:this.stars,
+      isHome:s.screen==='home', isMontar:s.screen==='montar', isResultado:s.screen==='resultado',
+      isV1:s.variant===1, isV2:s.variant===2, isV3:s.variant===3, isV4:s.variant===4,
+      lineup,
+      club, rival:club.rival,
+      rolled:s.rolled, notRolled:!s.rolled,
+      dieAnim: s.rolling ? 'spinDie .6s ease' : 'none',
+      scorers:s.scorers,
+      steps:[
+        {n:'01',t:'Role',d:'Sorteia um clube campeão e uma temporada'},
+        {n:'02',t:'Monte',d:'Escale um craque que jogou ali'},
+        {n:'03',t:'Simule',d:'Veja se seu time faz 7 a 0'}
+      ],
+      variantBtns,
+      formationBtns, styleBtns, modeBtns, slots, boxRows, configLabel, assigned,
+      goHome:()=>this.setState({screen:'home'}),
+      goMontar:()=>this.setState({screen:'montar'}),
+      roll:()=>this.rollOnce(),
+      goResultado:()=>{ const c=this.clubs[this.state.clubIdx]; this.setState({screen:'resultado', scorers:this.buildScorers(c)}); }
+    };
+  }
+}
+</script>
+</body>
+</html>
