@@ -219,7 +219,14 @@
       "cancelReady": "Cancelar",
       "leave": "Sair da sala",
       "allReady": "Todos prontos",
-      "waitingReady": "Aguardando todos ficarem prontos…"
+      "waitingReady": "Aguardando todos ficarem prontos…",
+      "setupSub": "Cada um monta o seu time. Quando todos terminarem, o anfitrião começa o draft.",
+      "pickMode": "Escolha o formato",
+      "needFour": "O torneio precisa de 4 jogadores na sala.",
+      "waitingHost": "Aguardando o anfitrião começar o draft…",
+      "nowDrafting": "Montando agora",
+      "watching": "{name} está montando o time…",
+      "waitingReveal": "Aguardando o anfitrião revelar a partida…"
     }
   },
   "perfil": {

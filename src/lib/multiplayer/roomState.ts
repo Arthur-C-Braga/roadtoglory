@@ -29,6 +29,22 @@ export type RoomPlayer = {
   connected: boolean;
 };
 
+// who the local viewer is, for gating interactivity in the shared game render.
+// myTeamIdx null means "controls everything" (the local hot-seat).
+export type Seat = {
+  playerId: string;
+  isHost: boolean;
+  myTeamIdx: number | null;
+  isOnline: boolean;
+};
+
+export const LOCAL_SEAT: Seat = {
+  playerId: "",
+  isHost: true,
+  myTeamIdx: null,
+  isOnline: false,
+};
+
 export type TeamCfg = {
   name: string;
   formation: FormationName;
@@ -189,8 +205,15 @@ function finishMatchup(s: RoomState, winner: number): RoomState {
 export function reducer(s: RoomState, e: RoomEvent): RoomState {
   switch (e.t) {
     case "reset":
-      // keep who's in the room (online), reset the game itself
-      return { ...initialRoom(), players: s.players, hostId: s.hostId };
+      // keep who's in the room (online), reset the game itself; online returns
+      // to the lobby, the local hot-seat to its menu
+      return {
+        ...initialRoom(),
+        players: s.players.map((p) => ({ ...p, teamIdx: null })),
+        hostId: s.hostId,
+        ready: [],
+        stage: s.players.length ? "lobby" : "menu",
+      };
     case "back":
       return { ...s, stage: "menu" };
     case "playerJoin": {
@@ -212,9 +235,16 @@ export function reducer(s: RoomState, e: RoomEvent): RoomState {
       };
     case "chooseMode": {
       const n = e.mode === "tourney" ? 4 : 2;
+      // seat the first n connected players onto teams 0..n-1 (online); the rest
+      // (and the empty local hot-seat) get no team
+      const connected = s.players.filter((p) => p.connected);
+      const players = s.players.map((p) => {
+        const seatIdx = connected.findIndex((c) => c.id === p.id);
+        return { ...p, teamIdx: seatIdx >= 0 && seatIdx < n ? seatIdx : null };
+      });
       return {
         ...initialRoom(),
-        players: s.players,
+        players,
         hostId: s.hostId,
         mode: e.mode,
         stage: "setup",

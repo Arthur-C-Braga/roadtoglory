@@ -3198,6 +3198,34 @@ h3 {
   color: var(--muted);
   font-size: 0.85rem;
 }
+.mo-host-start {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  margin-top: 6px;
+}
+.mo-leave {
+  align-self: center;
+  margin-top: 16px;
+}
+/* readonly setup panel (online: not your team) */
+.build-panel.is-readonly {
+  opacity: 0.62;
+}
+.build-panel.is-readonly input:disabled,
+.build-panel.is-readonly button:disabled {
+  cursor: default;
+}
+.bp-owner {
+  font-family: var(--cond);
+  font-weight: 800;
+  font-size: 0.78rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-bottom: 8px;
+}
 .ml-name-input {
   font-family: var(--body);
   font-size: 1rem;

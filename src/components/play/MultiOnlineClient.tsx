@@ -2,8 +2,9 @@
 
 import { useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
-import { Link } from "@/i18n/routing";
 import { useNetworkedRoom } from "@/lib/multiplayer/useNetworkedRoom";
+import { MultiGame, MultiHead } from "./MultiGame";
+import type { Mode, Seat } from "@/lib/multiplayer/roomState";
 
 // unambiguous code alphabet (no 0/O, 1/I)
 const CODE_ALPHABET = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
@@ -17,21 +18,10 @@ function getPlayerId(): string {
   if (typeof window === "undefined") return "";
   let id = localStorage.getItem("rtg_pid");
   if (!id) {
-    id = (crypto.randomUUID?.() ?? `p${Date.now()}-${Math.random().toString(36).slice(2)}`);
+    id = crypto.randomUUID?.() ?? `p${Date.now()}-${Math.random().toString(36).slice(2)}`;
     localStorage.setItem("rtg_pid", id);
   }
   return id;
-}
-
-function Head() {
-  return (
-    <header className="site-header">
-      <Link className="brand" href="/" aria-label="Road to Glory">
-        <span className="brand-badge" aria-hidden="true">★</span>
-        <span className="brand-word">ROAD TO <span className="accent">GLORY</span></span>
-      </Link>
-    </header>
-  );
 }
 
 export function MultiOnlineClient() {
@@ -47,7 +37,7 @@ export function MultiOnlineClient() {
 
   if (roomId) {
     return (
-      <LobbyRoom
+      <RoomView
         roomId={roomId}
         playerId={playerId}
         name={name.trim() || "Jogador"}
@@ -58,7 +48,7 @@ export function MultiOnlineClient() {
 
   return (
     <main className="page-wrap tx-paper">
-      <Head />
+      <MultiHead />
       <div className="page-body ml-setup-body">
         <h1 className="page-title">{t("multi.online.title")}</h1>
         <p className="page-sub">{t("multi.online.sub")}</p>
@@ -76,11 +66,7 @@ export function MultiOnlineClient() {
           </label>
 
           <div className="mo-actions">
-            <button
-              className="btn btn-primary big"
-              disabled={!canEnter}
-              onClick={() => setRoomId(genCode())}
-            >
+            <button className="btn btn-primary big" disabled={!canEnter} onClick={() => setRoomId(genCode())}>
               {t("multi.online.create")}
             </button>
           </div>
@@ -107,7 +93,7 @@ export function MultiOnlineClient() {
   );
 }
 
-function LobbyRoom({
+function RoomView({
   roomId,
   playerId,
   name,
@@ -118,8 +104,39 @@ function LobbyRoom({
   name: string;
   onLeave: () => void;
 }) {
-  const t = useTranslations();
   const { state, dispatch, connected } = useNetworkedRoom({ roomId, playerId, playerName: name });
+
+  // once the host starts, hand off to the shared game render
+  if (state.stage !== "lobby") {
+    const me = state.players.find((p) => p.id === playerId);
+    const seat: Seat = {
+      playerId,
+      isHost: state.hostId === playerId,
+      myTeamIdx: me?.teamIdx ?? null,
+      isOnline: true,
+    };
+    return <MultiGame state={state} dispatch={dispatch} seat={seat} />;
+  }
+
+  return <Lobby state={state} dispatch={dispatch} connected={connected} roomId={roomId} playerId={playerId} onLeave={onLeave} />;
+}
+
+function Lobby({
+  state,
+  dispatch,
+  connected,
+  roomId,
+  playerId,
+  onLeave,
+}: {
+  state: ReturnType<typeof useNetworkedRoom>["state"];
+  dispatch: ReturnType<typeof useNetworkedRoom>["dispatch"];
+  connected: boolean;
+  roomId: string;
+  playerId: string;
+  onLeave: () => void;
+}) {
+  const t = useTranslations();
   const [copied, setCopied] = useState(false);
 
   const players = state.players.filter((p) => p.connected);
@@ -127,6 +144,7 @@ function LobbyRoom({
   const isReady = state.ready.includes(playerId);
   const others = players.filter((p) => p.id !== state.hostId);
   const allReady = others.length > 0 && others.every((p) => state.ready.includes(p.id));
+  const n = players.length;
 
   function copyCode() {
     navigator.clipboard?.writeText(roomId).then(
@@ -138,9 +156,13 @@ function LobbyRoom({
     );
   }
 
+  function start(mode: Mode) {
+    dispatch({ t: "chooseMode", mode });
+  }
+
   return (
     <main className="page-wrap tx-paper">
-      <Head />
+      <MultiHead />
       <div className="page-body ml-setup-body">
         <h1 className="page-title">{t("multi.online.lobbyTitle")}</h1>
 
@@ -172,23 +194,42 @@ function LobbyRoom({
           })}
         </ul>
 
-        <div className="ml-setup-actions">
-          <button className="btn btn-secondary" onClick={onLeave}>
-            {t("multi.online.leave")}
-          </button>
-          {isHost ? (
-            <span className="mo-host-hint">
-              {allReady ? t("multi.online.allReady") : t("multi.online.waitingReady")}
-            </span>
-          ) : (
+        {isHost ? (
+          <div className="mo-host-start">
+            {!allReady ? (
+              <span className="mo-host-hint">{t("multi.online.waitingReady")}</span>
+            ) : (
+              <>
+                <span className="ml-menu-label">{t("multi.online.pickMode")}</span>
+                <div className="ml-menu-row">
+                  <button className="btn btn-primary" disabled={n < 2} onClick={() => start("single")}>
+                    {t("multi.local.modeSingle")}
+                  </button>
+                  <button className="btn btn-primary" disabled={n < 2} onClick={() => start("twoleg")}>
+                    {t("multi.local.modeTwoLeg")}
+                  </button>
+                  <button className="btn btn-primary" disabled={n < 4} onClick={() => start("tourney")}>
+                    {t("multi.local.modeTourney")}
+                  </button>
+                </div>
+                {n < 4 && <span className="mo-host-hint">{t("multi.online.needFour")}</span>}
+              </>
+            )}
+          </div>
+        ) : (
+          <div className="ml-setup-actions">
             <button
               className={`btn ${isReady ? "btn-secondary" : "btn-primary"} big`}
               onClick={() => dispatch({ t: "setReady", id: playerId, ready: !isReady })}
             >
               {isReady ? t("multi.online.cancelReady") : t("multi.online.markReady")}
             </button>
-          )}
-        </div>
+          </div>
+        )}
+
+        <button className="btn btn-secondary mo-leave" onClick={onLeave}>
+          {t("multi.online.leave")}
+        </button>
       </div>
     </main>
   );
