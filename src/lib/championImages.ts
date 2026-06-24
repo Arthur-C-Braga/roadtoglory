@@ -1,5 +1,5 @@
 ﻿// Players with a champion portrait in /public/champion-images.
-// Auto-generated from the image filenames (<Player Name>-champion.png).
+// Auto-generated from the image filenames (<Player Name>-champion.webp).
 // Used to pick the highlighted "destaque" and show their image on the champion card.
 
 export const CHAMPION_IMAGE_NAMES: ReadonlySet<string> = new Set([
@@ -51,5 +51,5 @@ export function hasChampionImage(name: string): boolean {
 }
 
 export function championImageSrc(name: string): string {
-  return `/champion-images/${encodeURIComponent(name)}-champion.png`;
+  return `/champion-images/${encodeURIComponent(name)}-champion.webp`;
 }

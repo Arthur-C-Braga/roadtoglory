@@ -1,5 +1,5 @@
 ﻿// Players with a "goal" portrait in /public/goal-images.
-// Auto-generated from the image filenames (<Player Name>-goal.png).
+// Auto-generated from the image filenames (<Player Name>-goal.webp).
 // Used for the goal-celebration popup when that player scores during a match.
 
 export const GOAL_IMAGE_NAMES: ReadonlySet<string> = new Set([
@@ -215,5 +215,5 @@ export function hasGoalImage(name: string): boolean {
 }
 
 export function goalImageSrc(name: string): string {
-  return `/goal-images/${encodeURIComponent(name)}-goal.png`;
+  return `/goal-images/${encodeURIComponent(name)}-goal.webp`;
 }

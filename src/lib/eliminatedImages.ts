@@ -1,5 +1,5 @@
 ﻿// Players with an "eliminated" portrait in /public/eliminated-images.
-// Auto-generated from the image filenames (<Player Name>-eliminated.png).
+// Auto-generated from the image filenames (<Player Name>-eliminated.webp).
 // Mirrors championImages.ts; used to show the MVP image on the elimination card.
 
 export const ELIMINATED_IMAGE_NAMES: ReadonlySet<string> = new Set([
@@ -21,5 +21,5 @@ export function hasEliminatedImage(name: string): boolean {
 }
 
 export function eliminatedImageSrc(name: string): string {
-  return `/eliminated-images/${encodeURIComponent(name)}-eliminated.png`;
+  return `/eliminated-images/${encodeURIComponent(name)}-eliminated.webp`;
 }
