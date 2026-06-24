@@ -24,6 +24,7 @@ export type TeamRating = { attack: number; defense: number; overall: number };
 const HOME_ATK = 4; // home team's attack bump
 const ET_FACTOR = 30 / 90; // extra-time scoring relative to a full match
 const LEAGUE_GAMES = 8;
+const LEAGUE_FIELD = 35; // standings = you + 35 random clubs => 36-team Swiss table
 const QUAL_DIRECT = 8; // 1..8 -> Round of 16
 const QUAL_PLAYOFF = 24; // 9..24 -> Round of 32 playoff; 25..36 out
 const PEN_RATE = 0.09; // share of your goals that come from a penalty
@@ -772,10 +773,6 @@ export function simulateCampaign(
   const userDraw =
     VALID_DRAWS.find((d) => d.nation.id === uNation && d.cup === uCup) ?? VALID_DRAWS[0];
   const field = VALID_DRAWS.filter((d) => d !== userDraw);
-  const fieldXI = field.map((d) => autoPickXI(buildSquad(d.nation.id, d.cup).players, formation));
-  const fieldRatings = fieldXI.map((x) => rateTeam(x));
-  const fieldCtx = fieldXI.map((x) => makeScoreCtx(x));
-  const allRatings = [rating, ...fieldRatings];
 
   let standings: StandRow[];
   let leaguePos: number;
@@ -784,10 +781,12 @@ export function simulateCampaign(
 
   if (format === "grupos") {
     // ---- Group phase: a group of 4 (you + 3 draws), home & away ----------
-    const groupOpps = shuffle(
-      rng,
-      field.map((d, i) => ({ d, r: fieldRatings[i], c: fieldCtx[i] }))
-    ).slice(0, 3);
+    const groupOpps = shuffle(rng, field)
+      .slice(0, 3)
+      .map((d) => {
+        const x = autoPickXI(buildSquad(d.nation.id, d.cup).players, formation);
+        return { d, r: rateTeam(x), c: makeScoreCtx(x) };
+      });
     const oppRec = groupOpps.map(() => ({ pts: 0, gf: 0, ga: 0 }));
     let groupGf = 0,
       groupGa = 0;
@@ -869,10 +868,18 @@ export function simulateCampaign(
     path = leaguePos <= 2 ? ["OITAVAS", "QUARTAS", "SEMI"] : [];
   } else {
     // ---- League phase: 8 live games (exactly 4 home, 4 away) --------------
-    const leagueOpps = shuffle(
-      rng,
-      field.map((d, i) => ({ d, r: fieldRatings[i], c: fieldCtx[i] }))
-    ).slice(0, LEAGUE_GAMES);
+    // you + 35 random clubs form the 36-team Swiss table; you play 8 of them
+    const leagueField = shuffle(rng, field).slice(0, LEAGUE_FIELD);
+    const leagueXI = leagueField.map((d) =>
+      autoPickXI(buildSquad(d.nation.id, d.cup).players, formation)
+    );
+    const leagueRatings = leagueXI.map((x) => rateTeam(x));
+    const allRatings = [rating, ...leagueRatings];
+    const leagueOpps = leagueField.slice(0, LEAGUE_GAMES).map((d, i) => ({
+      d,
+      r: leagueRatings[i],
+      c: makeScoreCtx(leagueXI[i]),
+    }));
     const haPattern = shuffle(rng, [true, true, true, true, false, false, false, false]);
     let leagueGf = 0,
       leagueGa = 0;
@@ -887,8 +894,8 @@ export function simulateCampaign(
     });
 
     // ---- Standings: user's real row + lightly-simulated field rows --------
-    standings = field.map((d, i) => {
-      const rec = lightLeagueRecord(rng, fieldRatings[i], allRatings);
+    standings = leagueField.map((d, i) => {
+      const rec = lightLeagueRecord(rng, leagueRatings[i], allRatings);
       return {
         nationId: d.nation.id,
         name: d.nation.name,
