@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/routing";
 import { Pitch, type Placed, type DiscBadge } from "./Pitch";
@@ -17,12 +17,19 @@ import {
   type Pos,
   type Slot,
 } from "@/lib/data";
-import { rateTeam, simulateMatch, simulateTie, type Fixture, type Phase, type Style } from "@/lib/sim";
+import { rateTeam, simulateMatch, simulateTie, type Fixture, type Style } from "@/lib/sim";
 import { pick, mulberry32 } from "@/lib/rng";
 import { hasChampionImage, championImageSrc } from "@/lib/championImages";
 import { hasEliminatedImage, eliminatedImageSrc } from "@/lib/eliminatedImages";
+import { useRoom } from "@/lib/multiplayer/useRoom";
+import {
+  filledCount,
+  isFull,
+  type Matchup,
+  type Mode,
+  type TeamCfg,
+} from "@/lib/multiplayer/roomState";
 
-const REROLL_MAX = 3;
 const FORMATION_KEYS = Object.keys(FORMATIONS) as FormationName[];
 const SPEEDS = ["slow", "normal", "fast", "ultra"] as const;
 type Speed = (typeof SPEEDS)[number];
@@ -51,24 +58,6 @@ function lineAvg(slots: { pos: Pos }[], placed: Placed, group: Set<Pos>): number
   return n ? Math.round(sum / n) : null;
 }
 
-type TeamCfg = {
-  name: string;
-  formation: FormationName;
-  style: Style;
-  almanaque: boolean;
-  placed: Placed;
-};
-
-function emptyTeam(): TeamCfg {
-  return {
-    name: "",
-    formation: "4-3-3",
-    style: "equilibrado",
-    almanaque: false,
-    placed: new Array(FORMATIONS["4-3-3"].length).fill(null),
-  };
-}
-
 function teamSlots(t: TeamCfg): Slot[] {
   return styledFormation(FORMATIONS[t.formation], t.style);
 }
@@ -80,91 +69,63 @@ function teamXI(t: TeamCfg) {
     .filter(Boolean) as { player: Player; slotPos: Pos }[];
 }
 
-const slotsCount = (t: TeamCfg) => FORMATIONS[t.formation].length;
-const filledCount = (t: TeamCfg) => t.placed.filter(Boolean).length;
-const isFull = (t: TeamCfg) => filledCount(t) >= slotsCount(t);
-
-function withPlaced(placed: Placed, i: number, p: Player): Placed {
-  const next = placed.slice();
-  next[i] = p;
-  return next;
-}
-
-type Stage = "menu" | "setup" | "draft" | "reveal" | "result";
-type Mode = "single" | "twoleg" | "tourney";
-type Matchup = { label: string; a: number; b: number; legs: 1 | 2; phase: Phase };
-
 export function MultiLocalClient() {
   const t = useTranslations();
-  const [stage, setStage] = useState<Stage>("menu");
-  const [mode, setMode] = useState<Mode>("single");
-  const [teams, setTeams] = useState<TeamCfg[]>([emptyTeam(), emptyTeam()]);
+  const { state, dispatch } = useRoom();
+  const {
+    stage,
+    mode,
+    teams,
+    turn,
+    draw,
+    rerolls,
+    queue,
+    qi,
+    legIdx,
+    matchStarted,
+    baseSeed,
+    standings,
+  } = state;
   const numTeams = teams.length;
 
-  // draft state
-  const [turn, setTurn] = useState(0);
-  const [dir, setDir] = useState<1 | -1>(1); // snake direction (4-player)
-  const [turnPicks, setTurnPicks] = useState(0);
-  const [draw, setDraw] = useState<{ nationId: string; cup: number } | null>(null);
+  // local UI / playback state — not part of the shared room state
   const [spinning, setSpinning] = useState(false);
   const [selectedPlayer, setSelectedPlayer] = useState<Player | null>(null);
   const [movingFrom, setMovingFrom] = useState<number | null>(null);
-  const [rerolls, setRerolls] = useState<number[]>([REROLL_MAX, REROLL_MAX]);
-
-  // bracket / reveal state
-  const [queue, setQueue] = useState<Matchup[]>([]);
-  const [qi, setQi] = useState(0);
+  const [speed, setSpeed] = useState<Speed>("slow");
   const [curFixtures, setCurFixtures] = useState<Fixture[]>([]);
   const [curWinner, setCurWinner] = useState(0);
-  const [legIdx, setLegIdx] = useState(0);
-  const [matchStarted, setMatchStarted] = useState(false);
-  const [speed, setSpeed] = useState<Speed>("slow");
-  const [baseSeed, setBaseSeed] = useState(0);
-  const [standings, setStandings] = useState<number[] | null>(null); // result order (team indices)
-  const [podiumTeam, setPodiumTeam] = useState<number | null>(null); // lineup modal on the podium
   const [copied, setCopied] = useState(false);
-  const resultsRef = useRef<{ winner: number; loser: number }[]>([]);
+  const [podiumTeam, setPodiumTeam] = useState<number | null>(null);
 
-  const picksPerTurn = mode === "tourney" ? 3 : 1;
   const named = (i: number) => teams[i]?.name.trim() || t("multi.local.teamN", { n: i + 1 });
+  const mLabel = (m: Matchup) => t(m.labelKey, m.labelN != null ? { n: m.labelN } : {});
 
-  function chooseMode(m: Mode) {
-    const n = m === "tourney" ? 4 : 2;
-    setMode(m);
-    setTeams(Array.from({ length: n }, emptyTeam));
-    setRerolls(Array.from({ length: n }, () => REROLL_MAX));
-    setTurn(0);
-    setDir(1);
-    setTurnPicks(0);
-    setStage("setup");
-  }
-
-  function playAgain() {
-    setStage("menu");
-    setTeams([emptyTeam(), emptyTeam()]);
-    setTurn(0);
-    setDir(1);
-    setTurnPicks(0);
-    setDraw(null);
+  function resetLocalUI() {
     setSpinning(false);
     setSelectedPlayer(null);
     setMovingFrom(null);
-    setRerolls([REROLL_MAX, REROLL_MAX]);
-    setQueue([]);
-    setQi(0);
+  }
+
+  function chooseMode(m: Mode) {
+    resetLocalUI();
+    dispatch({ t: "chooseMode", mode: m });
+  }
+
+  function playAgain() {
+    resetLocalUI();
     setCurFixtures([]);
-    setLegIdx(0);
-    setMatchStarted(false);
-    setStandings(null);
+    setCurWinner(0);
+    setCopied(false);
     setPodiumTeam(null);
-    resultsRef.current = [];
+    dispatch({ t: "reset" });
   }
 
   function patchTeam(idx: number, patch: Partial<TeamCfg>) {
-    setTeams((ts) => ts.map((tm, i) => (i === idx ? { ...tm, ...patch } : tm)));
+    dispatch({ t: "patchTeam", idx, patch });
   }
   function chooseFormation(idx: number, f: FormationName) {
-    patchTeam(idx, { formation: f, placed: new Array(FORMATIONS[f].length).fill(null) });
+    dispatch({ t: "chooseFormation", idx, formation: f });
   }
 
   // ----- draft helpers (active team) -------------------------------------
@@ -215,9 +176,8 @@ export function MultiLocalClient() {
     const r = mulberry32((Date.now() % 2147483647) >>> 0);
     setTimeout(() => {
       const d = pick(r, VALID_DRAWS);
-      setDraw({ nationId: d.nation.id, cup: d.cup });
+      dispatch({ t: "draw", nationId: d.nation.id, cup: d.cup, reroll });
       setSpinning(false);
-      if (reroll) setRerolls((rr) => rr.map((v, i) => (i === turn ? v - 1 : v)));
     }, 600);
   }
 
@@ -234,15 +194,7 @@ export function MultiLocalClient() {
         return;
       }
       if (!highlight.includes(i)) return;
-      setTeams((ts) =>
-        ts.map((tm, ti) => {
-          if (ti !== turn) return tm;
-          const placed = tm.placed.slice();
-          placed[i] = placed[movingFrom];
-          placed[movingFrom] = null;
-          return { ...tm, placed };
-        })
-      );
+      dispatch({ t: "movePlaced", from: movingFrom, to: i });
       setMovingFrom(null);
       return;
     }
@@ -255,40 +207,8 @@ export function MultiLocalClient() {
 
   function placeAt(i: number) {
     if (!selectedPlayer || !highlight.includes(i)) return;
-    const chosen = selectedPlayer;
-    const updated = teams.map((tm, ti) =>
-      ti === turn ? { ...tm, placed: withPlaced(tm.placed, i, chosen) } : tm
-    );
-    setTeams(updated);
+    dispatch({ t: "place", player: selectedPlayer, slot: i });
     setSelectedPlayer(null);
-    setDraw(null);
-    const picks = turnPicks + 1;
-    if (picks >= picksPerTurn || isFull(updated[turn])) advanceDraft(updated);
-    else setTurnPicks(picks);
-  }
-
-  function advanceDraft(updated: TeamCfg[]) {
-    setTurnPicks(0);
-    setMovingFrom(null);
-    if (updated.every(isFull)) {
-      startBracket(updated);
-      return;
-    }
-    if (mode !== "tourney") {
-      setTurn((tn) => (tn === 0 ? 1 : 0));
-      return;
-    }
-    // snake order, skipping teams already complete
-    let d: 1 | -1 = dir;
-    let nt = turn;
-    for (let guard = 0; guard < numTeams * 4; guard++) {
-      const ni = nt + d;
-      if (ni < 0 || ni >= numTeams) d = d === 1 ? -1 : 1; // boundary: end team picks again
-      else nt = ni;
-      if (!isFull(updated[nt])) break;
-    }
-    setDir(d);
-    setTurn(nt);
   }
 
   function shuffled<T>(arr: T[]): T[] {
@@ -300,28 +220,26 @@ export function MultiLocalClient() {
     return a;
   }
 
-  function startBracket(updated: TeamCfg[]) {
-    void updated;
-    resultsRef.current = [];
-    setBaseSeed(Math.floor(Math.random() * 2_000_000_000));
+  // once the draft fills up, the authority generates the bracket seed + pairings
+  // and broadcasts beginReveal (deterministic sim => every client matches).
+  useEffect(() => {
+    if (stage !== "draft" || !teams.every(isFull)) return;
+    const seed = Math.floor(Math.random() * 2_000_000_000);
     let q: Matchup[];
     if (mode === "single") {
-      q = [{ label: t("multi.local.matchLabel"), a: 0, b: 1, legs: 1, phase: "FINAL" }];
+      q = [{ labelKey: "multi.local.matchLabel", a: 0, b: 1, legs: 1, phase: "FINAL" }];
     } else if (mode === "twoleg") {
-      q = [{ label: t("multi.local.twoLeg"), a: 0, b: 1, legs: 2, phase: "FINAL" }];
+      q = [{ labelKey: "multi.local.twoLeg", a: 0, b: 1, legs: 2, phase: "FINAL" }];
     } else {
       const o = shuffled([0, 1, 2, 3]);
       q = [
-        { label: t("multi.local.semifinal", { n: 1 }), a: o[0], b: o[1], legs: 2, phase: "SEMI" },
-        { label: t("multi.local.semifinal", { n: 2 }), a: o[2], b: o[3], legs: 2, phase: "SEMI" },
+        { labelKey: "multi.local.semifinal", labelN: 1, a: o[0], b: o[1], legs: 2, phase: "SEMI" },
+        { labelKey: "multi.local.semifinal", labelN: 2, a: o[2], b: o[3], legs: 2, phase: "SEMI" },
       ];
     }
-    setQueue(q);
-    setQi(0);
-    setLegIdx(0);
-    setMatchStarted(false);
-    setStage("reveal");
-  }
+    dispatch({ t: "beginReveal", baseSeed: seed, queue: q });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [stage, teams]);
 
   // compute the fixtures for the current matchup whenever it changes
   useEffect(() => {
@@ -340,50 +258,15 @@ export function MultiLocalClient() {
       setCurFixtures([f]);
       setCurWinner(f.result === "W" ? m.a : m.b);
     }
-    setLegIdx(0);
-    setMatchStarted(false);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [stage, qi, queue]);
 
   function onLegDone() {
     if (legIdx < curFixtures.length - 1) {
-      setLegIdx((x) => x + 1);
-      setMatchStarted(false);
+      dispatch({ t: "nextLeg" });
       return;
     }
-    finishMatchup();
-  }
-
-  function finishMatchup() {
-    const m = queue[qi];
-    const winner = curWinner;
-    const loser = winner === m.a ? m.b : m.a;
-    resultsRef.current[qi] = { winner, loser };
-
-    if (mode !== "tourney") {
-      setStandings([winner, loser]);
-      setStage("result");
-      return;
-    }
-    if (qi === 1) {
-      // both semis done → append the 3rd-place match and the final
-      const r0 = resultsRef.current[0];
-      const r1 = resultsRef.current[1];
-      setQueue((q) => [
-        ...q,
-        { label: t("multi.local.thirdPlace"), a: r0.loser, b: r1.loser, legs: 1, phase: "PLAYOFF" },
-        { label: t("multi.local.finalLabel"), a: r0.winner, b: r1.winner, legs: 1, phase: "FINAL" },
-      ]);
-      setQi(2);
-      return;
-    }
-    if (qi === 3) {
-      const third = resultsRef.current[2];
-      setStandings([winner, loser, third.winner, third.loser]);
-      setStage("result");
-      return;
-    }
-    setQi((x) => x + 1);
+    dispatch({ t: "finishMatchup", winner: curWinner });
   }
 
   function shareResult() {
@@ -458,10 +341,10 @@ export function MultiLocalClient() {
             ))}
           </div>
           <div className="ml-setup-actions">
-            <button className="btn btn-secondary" onClick={() => setStage("menu")}>
+            <button className="btn btn-secondary" onClick={() => dispatch({ t: "back" })}>
               {t("reveal.reviewBack")}
             </button>
-            <button className="btn btn-primary big" onClick={() => setStage("draft")}>
+            <button className="btn btn-primary big" onClick={() => dispatch({ t: "startDraft" })}>
               {t("multi.local.startDraft")}
             </button>
           </div>
@@ -607,7 +490,7 @@ export function MultiLocalClient() {
         {stage === "reveal" && cur && !matchStarted && (
           <div className="reveal-cardgate">
             <div className="ml-tie-title">
-              {cur.label}
+              {mLabel(cur)}
               {legTag && <span className="ml-tie-leg"> · {legTag}</span>}
             </div>
             <div className="seg-mini ml-speed" role="group" aria-label={t("reveal.speedLabel")}>
@@ -625,7 +508,7 @@ export function MultiLocalClient() {
                 </button>
               ))}
             </div>
-            <button className="btn btn-primary big" onClick={() => setMatchStarted(true)}>
+            <button className="btn btn-primary big" onClick={() => dispatch({ t: "startMatch" })}>
               {t("multi.local.revealMatch")}
             </button>
             <span className="ml-vs num">
