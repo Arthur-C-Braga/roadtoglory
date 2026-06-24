@@ -17,6 +17,7 @@ export const REROLL_MAX = 3;
 
 export type Stage = "lobby" | "menu" | "setup" | "draft" | "reveal" | "result";
 export type Mode = "single" | "twoleg" | "tourney";
+export type Speed = "slow" | "normal" | "fast" | "ultra";
 
 export type Placed = (Player | null)[];
 
@@ -83,6 +84,7 @@ export type RoomState = {
   qi: number;
   legIdx: number;
   matchStarted: boolean;
+  speed: Speed; // host-controlled playback, shared so everyone watches in sync
   baseSeed: number;
   results: { winner: number; loser: number }[];
   standings: number[] | null;
@@ -102,6 +104,7 @@ export type RoomEvent =
   | { t: "place"; player: Player; slot: number }
   | { t: "movePlaced"; from: number; to: number }
   | { t: "beginReveal"; baseSeed: number; queue: Matchup[] }
+  | { t: "setSpeed"; speed: Speed }
   | { t: "startMatch" }
   | { t: "nextLeg" }
   | { t: "finishMatchup"; winner: number };
@@ -145,6 +148,7 @@ export function initialRoom(): RoomState {
     qi: 0,
     legIdx: 0,
     matchStarted: false,
+    speed: "slow",
     baseSeed: 0,
     results: [],
     standings: null,
@@ -177,7 +181,7 @@ function finishMatchup(s: RoomState, winner: number): RoomState {
   results[s.qi] = { winner, loser };
 
   if (s.mode !== "tourney") {
-    return { ...s, results, standings: [winner, loser], stage: "result" };
+    return { ...s, results, standings: [winner, loser], stage: "result", ready: [] };
   }
   if (s.qi === 1) {
     // both semis done -> append the 3rd-place match and the final
@@ -188,7 +192,7 @@ function finishMatchup(s: RoomState, winner: number): RoomState {
       { labelKey: "multi.local.thirdPlace", a: r0.loser, b: r1.loser, legs: 1, phase: "PLAYOFF" },
       { labelKey: "multi.local.finalLabel", a: r0.winner, b: r1.winner, legs: 1, phase: "FINAL" },
     ];
-    return { ...s, results, queue, qi: 2, legIdx: 0, matchStarted: false };
+    return { ...s, results, queue, qi: 2, legIdx: 0, matchStarted: false, ready: [] };
   }
   if (s.qi === 3) {
     const third = results[2];
@@ -197,9 +201,10 @@ function finishMatchup(s: RoomState, winner: number): RoomState {
       results,
       standings: [winner, loser, third.winner, third.loser],
       stage: "result",
+      ready: [],
     };
   }
-  return { ...s, results, qi: s.qi + 1, legIdx: 0, matchStarted: false };
+  return { ...s, results, qi: s.qi + 1, legIdx: 0, matchStarted: false, ready: [] };
 }
 
 export function reducer(s: RoomState, e: RoomEvent): RoomState {
@@ -305,11 +310,15 @@ export function reducer(s: RoomState, e: RoomEvent): RoomState {
         legIdx: 0,
         matchStarted: false,
         results: [],
+        ready: [],
       };
+    case "setSpeed":
+      return { ...s, speed: e.speed };
     case "startMatch":
-      return { ...s, matchStarted: true };
+      // everyone watches together; clear the per-gate ready flags
+      return { ...s, matchStarted: true, ready: [] };
     case "nextLeg":
-      return { ...s, legIdx: s.legIdx + 1, matchStarted: false };
+      return { ...s, legIdx: s.legIdx + 1, matchStarted: false, ready: [] };
     case "finishMatchup":
       return finishMatchup(s, e.winner);
   }

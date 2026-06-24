@@ -38,7 +38,6 @@ import {
 
 const FORMATION_KEYS = Object.keys(FORMATIONS) as FormationName[];
 const SPEEDS = ["slow", "normal", "fast", "ultra"] as const;
-type Speed = (typeof SPEEDS)[number];
 
 const ATK_POS = new Set<Pos>(["PD", "PE", "ATA", "MEI", "ME"]);
 const DEF_POS = new Set<Pos>(["GOL", "ZAG", "LD", "LE"]);
@@ -95,15 +94,14 @@ export function MultiGame({
   seat: Seat;
 }) {
   const t = useTranslations();
-  const { mode, teams, turn, draw, rerolls, queue, qi, legIdx, matchStarted, baseSeed, standings } = state;
+  const { mode, teams, turn, draw, rerolls, queue, qi, legIdx, matchStarted, speed, baseSeed, standings } = state;
   const stage = state.stage;
   const online = seat.isOnline;
 
-  // local UI / playback state
+  // local UI state (playback speed is shared via the room so everyone syncs)
   const [spinning, setSpinning] = useState(false);
   const [selectedPlayer, setSelectedPlayer] = useState<Player | null>(null);
   const [movingFrom, setMovingFrom] = useState<number | null>(null);
-  const [speed, setSpeed] = useState<Speed>("slow");
   const [curFixtures, setCurFixtures] = useState<Fixture[]>([]);
   const [curWinner, setCurWinner] = useState(0);
   const [copied, setCopied] = useState(false);
@@ -122,6 +120,14 @@ export function MultiGame({
   const canEditTeam = (idx: number) => !online || seat.myTeamIdx === idx;
   const myTurn = !online || seat.myTeamIdx === turn;
   const canHost = !online || seat.isHost;
+
+  // reveal gate: the host may only start a match once every other connected
+  // player (non-host, with a team) has pressed "Pronto"
+  const revealOthers = state.players.filter(
+    (p) => p.connected && p.id !== state.hostId && p.teamIdx != null
+  );
+  const allRevealReady = !online || revealOthers.length === 0 || revealOthers.every((p) => state.ready.includes(p.id));
+  const iAmReady = state.ready.includes(seat.playerId);
 
   // ----- draft helpers (active team) -------------------------------------
   const active = teams[turn];
@@ -517,7 +523,7 @@ export function MultiGame({
               <>
                 <div className="seg-mini ml-speed" role="group" aria-label={t("reveal.speedLabel")}>
                   {SPEEDS.map((s) => (
-                    <button key={s} aria-pressed={speed === s} onClick={() => setSpeed(s)}>
+                    <button key={s} aria-pressed={speed === s} onClick={() => dispatch({ t: "setSpeed", speed: s })}>
                       {t(
                         s === "slow"
                           ? "reveal.speedSlow"
@@ -530,12 +536,29 @@ export function MultiGame({
                     </button>
                   ))}
                 </div>
-                <button className="btn btn-primary big" onClick={() => dispatch({ t: "startMatch" })}>
+                <button
+                  className="btn btn-primary big"
+                  disabled={online && !allRevealReady}
+                  onClick={() => dispatch({ t: "startMatch" })}
+                >
                   {t("multi.local.revealMatch")}
                 </button>
+                {online && !allRevealReady && (
+                  <span className="mo-host-hint">
+                    {t("multi.online.readyCount", {
+                      n: revealOthers.filter((p) => state.ready.includes(p.id)).length,
+                      total: revealOthers.length,
+                    })}
+                  </span>
+                )}
               </>
             ) : (
-              <span className="mo-host-hint">{t("multi.online.waitingReveal")}</span>
+              <button
+                className={`btn ${iAmReady ? "btn-secondary" : "btn-primary"} big`}
+                onClick={() => dispatch({ t: "setReady", id: seat.playerId, ready: !iAmReady })}
+              >
+                {iAmReady ? t("multi.online.cancelReady") : t("multi.online.markReady")}
+              </button>
             )}
             <span className="ml-vs num">
               {named(cur.a)} <span className="lm-x">×</span> {named(cur.b)}

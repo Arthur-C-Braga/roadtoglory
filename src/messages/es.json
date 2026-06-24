@@ -226,7 +226,8 @@
       "waitingHost": "Aguardando o anfitrião começar o draft…",
       "nowDrafting": "Montando agora",
       "watching": "{name} está montando o time…",
-      "waitingReveal": "Aguardando o anfitrião revelar a partida…"
+      "waitingReveal": "Aguardando o anfitrião revelar a partida…",
+      "readyCount": "{n}/{total} prontos"
     }
   },
   "perfil": {

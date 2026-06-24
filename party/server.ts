@@ -30,6 +30,7 @@ const HOST_ONLY = new Set<EventName>([
   "chooseMode",
   "startDraft",
   "beginReveal",
+  "setSpeed",
   "startMatch",
   "nextLeg",
   "finishMatchup",
