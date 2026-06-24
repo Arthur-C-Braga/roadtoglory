@@ -665,6 +665,21 @@ export function LiveMatch({
     rootRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
   }, [events, penKicks]);
 
+  // warm the cache with the portraits of everyone who scores in this match, so
+  // the celebration popup shows instantly instead of fetching on the goal.
+  useEffect(() => {
+    const names = new Set<string>();
+    for (const e of fixture.events) {
+      if ((e.kind === "goal" || e.kind === "pen") && e.player && hasGoalImage(e.player)) {
+        names.add(e.player);
+      }
+    }
+    names.forEach((n) => {
+      const img = new window.Image();
+      img.src = goalImageSrc(n);
+    });
+  }, [fixture]);
+
   useEffect(() => {
     let cur = 0;
     let sf = 0;
