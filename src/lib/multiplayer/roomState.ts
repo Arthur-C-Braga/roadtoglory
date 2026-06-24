@@ -8,15 +8,26 @@
 // The local hot-seat (useRoom -> useReducer) and a future networked transport
 // both feed the SAME reducer, so behaviour stays identical across modes.
 
-import { FORMATIONS, type FormationName, type Player } from "@/lib/data";
-import { type Phase, type Style } from "@/lib/sim";
+// NOTE: relative imports (not the "@/" alias) so this module also builds inside
+// the PartyKit worker, which doesn't read Next's tsconfig path aliases.
+import { FORMATIONS, type FormationName, type Player } from "../data";
+import { type Phase, type Style } from "../sim";
 
 export const REROLL_MAX = 3;
 
-export type Stage = "menu" | "setup" | "draft" | "reveal" | "result";
+export type Stage = "lobby" | "menu" | "setup" | "draft" | "reveal" | "result";
 export type Mode = "single" | "twoleg" | "tourney";
 
 export type Placed = (Player | null)[];
+
+// a connected participant in an online room (host, player, or — teamIdx null
+// with no slot — a spectator)
+export type RoomPlayer = {
+  id: string;
+  name: string;
+  teamIdx: number | null;
+  connected: boolean;
+};
 
 export type TeamCfg = {
   name: string;
@@ -41,6 +52,10 @@ export type RoomState = {
   stage: Stage;
   mode: Mode;
   teams: TeamCfg[];
+  // online presence (empty/ignored in the local hot-seat)
+  players: RoomPlayer[];
+  hostId: string;
+  ready: string[]; // player ids who pressed "Pronto"
   // draft
   turn: number;
   dir: 1 | -1; // snake direction (4-player)
@@ -60,6 +75,9 @@ export type RoomState = {
 export type RoomEvent =
   | { t: "reset" }
   | { t: "back" }
+  | { t: "playerJoin"; id: string; name: string } // server-only (on connect)
+  | { t: "playerLeave"; id: string } // server-only (on disconnect)
+  | { t: "setReady"; id: string; ready: boolean }
   | { t: "chooseMode"; mode: Mode }
   | { t: "patchTeam"; idx: number; patch: Partial<TeamCfg> }
   | { t: "chooseFormation"; idx: number; formation: FormationName }
@@ -99,6 +117,9 @@ export function initialRoom(): RoomState {
     stage: "menu",
     mode: "single",
     teams: [emptyTeam(), emptyTeam()],
+    players: [],
+    hostId: "",
+    ready: [],
     turn: 0,
     dir: 1,
     turnPicks: 0,
@@ -168,13 +189,33 @@ function finishMatchup(s: RoomState, winner: number): RoomState {
 export function reducer(s: RoomState, e: RoomEvent): RoomState {
   switch (e.t) {
     case "reset":
-      return initialRoom();
+      // keep who's in the room (online), reset the game itself
+      return { ...initialRoom(), players: s.players, hostId: s.hostId };
     case "back":
       return { ...s, stage: "menu" };
+    case "playerJoin": {
+      const exists = s.players.some((p) => p.id === e.id);
+      const players = exists
+        ? s.players.map((p) => (p.id === e.id ? { ...p, name: e.name, connected: true } : p))
+        : [...s.players, { id: e.id, name: e.name, teamIdx: null, connected: true }];
+      return { ...s, players, hostId: s.hostId || e.id };
+    }
+    case "playerLeave":
+      return {
+        ...s,
+        players: s.players.map((p) => (p.id === e.id ? { ...p, connected: false } : p)),
+      };
+    case "setReady":
+      return {
+        ...s,
+        ready: e.ready ? [...new Set([...s.ready, e.id])] : s.ready.filter((id) => id !== e.id),
+      };
     case "chooseMode": {
       const n = e.mode === "tourney" ? 4 : 2;
       return {
         ...initialRoom(),
+        players: s.players,
+        hostId: s.hostId,
         mode: e.mode,
         stage: "setup",
         teams: Array.from({ length: n }, emptyTeam),

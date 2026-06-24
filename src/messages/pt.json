@@ -171,6 +171,8 @@
     "selectorSub": "Dois jogadores, um dispositivo ou online",
     "modeLocal": "Local",
     "modeLocalDesc": "Dois jogadores no mesmo dispositivo, se alternando",
+    "modeOnline": "Online",
+    "modeOnlineDesc": "Cada um no seu aparelho, conectados por um código de sala",
     "modeFinal": "Final de Copa",
     "modeFinalDesc": "Cada um monta seu time e jogam a Final diretamente",
     "modeCopa": "Mata-mata de Copa",
@@ -198,6 +200,26 @@
       "thirdPlace": "Disputa de 3º lugar",
       "finalLabel": "Final",
       "podiumTitle": "Classificação final"
+    },
+    "online": {
+      "title": "Multiplayer online",
+      "sub": "Crie uma sala e compartilhe o código — cada um joga do seu aparelho.",
+      "yourName": "Seu nome",
+      "create": "Criar sala →",
+      "join": "Entrar",
+      "codePlaceholder": "Código da sala",
+      "lobbyTitle": "Sala",
+      "codeLabel": "Código da sala",
+      "connecting": "Conectando…",
+      "you": "você",
+      "host": "anfitrião",
+      "ready": "Pronto",
+      "notReady": "Aguardando",
+      "markReady": "Estou pronto",
+      "cancelReady": "Cancelar",
+      "leave": "Sair da sala",
+      "allReady": "Todos prontos",
+      "waitingReady": "Aguardando todos ficarem prontos…"
     }
   },
   "perfil": {

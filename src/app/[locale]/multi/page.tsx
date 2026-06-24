@@ -12,9 +12,10 @@ export default async function MultiPage({
   const t = await getTranslations("multi");
 
   const modes = [
-    { key: "Local", name: t("modeLocal"), desc: t("modeLocalDesc"), soon: false },
-    { key: "Final", name: t("modeFinal"), desc: t("modeFinalDesc"), soon: true },
-    { key: "Copa", name: t("modeCopa"), desc: t("modeCopaDesc"), soon: true },
+    { key: "Local", name: t("modeLocal"), desc: t("modeLocalDesc"), href: "/multi/local", soon: false },
+    { key: "Online", name: t("modeOnline"), desc: t("modeOnlineDesc"), href: "/multi/online", soon: false },
+    { key: "Final", name: t("modeFinal"), desc: t("modeFinalDesc"), href: "/multi/local", soon: true },
+    { key: "Copa", name: t("modeCopa"), desc: t("modeCopaDesc"), href: "/multi/local", soon: true },
   ];
 
   return (
@@ -37,7 +38,7 @@ export default async function MultiPage({
                 <span className="mc-soon">{t("comingSoon")}</span>
               </div>
             ) : (
-              <Link key={m.key} className="mode-card mode-card--link" href="/multi/local">
+              <Link key={m.key} className="mode-card mode-card--link" href={m.href}>
                 <span className="mc-name">{m.name}</span>
                 <span className="mc-desc">{m.desc}</span>
               </Link>

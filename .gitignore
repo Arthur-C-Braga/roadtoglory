@@ -13,3 +13,7 @@
 .DS_Store
 *.log
 .env*.local
+
+# wrangler / cloudflare worker local state
+.wrangler
+.dev.vars
