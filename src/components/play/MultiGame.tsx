@@ -275,6 +275,20 @@ export function MultiGame({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [stage, qi, queue]);
 
+  // for a two-leg tie the result card shows the AGGREGATE: summed scoreline and
+  // both legs' events (scorers / assists / cards), not just the second leg
+  const aggFixture = useMemo<Fixture | null>(() => {
+    if (curFixtures.length === 0) return null;
+    if (curFixtures.length === 1) return curFixtures[0];
+    const last = curFixtures[curFixtures.length - 1];
+    return {
+      ...last,
+      gfor: curFixtures.reduce((s, f) => s + f.gfor, 0),
+      gagainst: curFixtures.reduce((s, f) => s + f.gagainst, 0),
+      events: curFixtures.flatMap((f) => f.events),
+    };
+  }, [curFixtures]);
+
   function onLegDone() {
     if (!canHost) return; // online: only the host advances the reveal
     if (legIdx < curFixtures.length - 1) {
@@ -676,7 +690,7 @@ export function MultiGame({
           />
         )}
 
-        {stage === "result" && standings && mode !== "tourney" && curFixtures.length > 0 && (
+        {stage === "result" && standings && mode !== "tourney" && aggFixture && (
           <>
             <div className="result-screen ml-result">
               {[0, 1].map((idx) => (
@@ -684,7 +698,7 @@ export function MultiGame({
                   key={idx}
                   team={teams[idx]}
                   name={named(idx)}
-                  fixture={curFixtures[curFixtures.length - 1]}
+                  fixture={aggFixture}
                   side={idx === 0 ? "for" : "against"}
                   won={standings[0] === idx}
                 />
