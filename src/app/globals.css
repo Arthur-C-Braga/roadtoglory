@@ -1638,6 +1638,13 @@ h3 {
   grid-template-columns: 1fr 1fr;
   align-items: start;
 }
+/* mobile: stack the two end cards (champion on top, loser below) — the base
+   .result-screen rule below 760px is outweighed by .ml-result's specificity */
+@media (max-width: 760px) {
+  .result-screen.ml-result {
+    grid-template-columns: 1fr;
+  }
+}
 .field-card .rc-pitch {
   flex: 1;
   display: flex;

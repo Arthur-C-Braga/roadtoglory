@@ -693,14 +693,14 @@ export function MultiGame({
         {stage === "result" && standings && mode !== "tourney" && aggFixture && (
           <>
             <div className="result-screen ml-result">
-              {[0, 1].map((idx) => (
+              {standings.map((idx, rank) => (
                 <TeamCard
                   key={idx}
                   team={teams[idx]}
                   name={named(idx)}
                   fixture={aggFixture}
                   side={idx === 0 ? "for" : "against"}
-                  won={standings[0] === idx}
+                  won={rank === 0}
                 />
               ))}
             </div>
