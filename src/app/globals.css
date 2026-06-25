@@ -1835,23 +1835,34 @@ h3 {
   object-fit: contain;
   filter: drop-shadow(0 10px 28px rgba(0, 0, 0, 0.7));
 }
-/* mobile: there's no room beside the card, so tuck the popups INSIDE it
-   (your scorer at the left edge, the opponent at the right) and shrink them */
+/* mobile: there's no room beside the card, so drop the popup BELOW the card,
+   barely overlapping its bottom edge (your scorer left, the opponent right) */
 @media (max-width: 640px) {
   .goal-pop,
   .reveal-stage.card-open .goal-pop {
     width: clamp(104px, 38vw, 168px);
+    top: 100%;
+    bottom: auto;
+    animation-name: goal-pop-below;
   }
   .goal-pop--for {
     right: auto;
-    left: 6px;
+    left: 8px;
     margin-right: 0;
   }
   .goal-pop--against {
     left: auto;
-    right: 6px;
+    right: 8px;
     margin-left: 0;
   }
+}
+/* same fade/pop, but anchored just under the card's bottom edge (small overlap) */
+@keyframes goal-pop-below {
+  0% { opacity: 0; transform: translateY(-16%) scale(0.82); }
+  14% { opacity: 1; transform: translateY(-16%) scale(1.04); }
+  28% { transform: translateY(-16%) scale(1); }
+  70% { opacity: 1; transform: translateY(-16%) scale(1); }
+  100% { opacity: 0; transform: translateY(-16%) scale(1); }
 }
 /* only fade in (quick) / fade out, with a small pop — kept vertically centered */
 @keyframes goal-pop {
