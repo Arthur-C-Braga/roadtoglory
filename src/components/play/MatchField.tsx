@@ -1,7 +1,11 @@
 "use client";
 
-import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { memo, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { type Slot } from "@/lib/data";
+
+// per-tick live inputs delivered via a stable ref so they DON'T re-render the
+// component every match tick (progress changes ~every step)
+export type MatchLive = { progress: number };
 
 type Base = { homeX: number; homeY: number; team: 0 | 1; n: number; name: string | null };
 
@@ -60,7 +64,7 @@ function buildPlayers(
   return [...you, ...opp];
 }
 
-export function MatchField({
+function MatchFieldImpl({
   slots,
   goalFlash,
   upcomingGoalSide,
@@ -70,8 +74,8 @@ export function MatchField({
   sentOffFor,
   sentOffAgainst,
   score,
-  progress,
   breakKey,
+  live,
 }: {
   slots: Slot[];
   goalFlash: "for" | "against" | null;
@@ -84,11 +88,12 @@ export function MatchField({
   /** names of players sent off so far — their dots disappear from the pitch */
   sentOffFor?: string[];
   sentOffAgainst?: string[];
-  /** live scoreline + how far the match has run (0..1) — drives momentum */
+  /** live scoreline — drives momentum (changes only on goals) */
   score?: { for: number; against: number };
-  progress?: number;
   /** increments at half-time / extra-time breaks — triggers a recentre */
   breakKey?: number;
+  /** how far the match has run (0..1) — read live, never as a per-tick prop */
+  live: { current: MatchLive };
 }) {
   const players = useMemo(
     () => buildPlayers(slots, oppSlots, names, oppNames),
@@ -102,7 +107,6 @@ export function MatchField({
   const upcomingRef = useRef<"for" | "against" | null>(null);
   const hiddenRef = useRef<Set<number>>(new Set());
   const scoreRef = useRef({ for: 0, against: 0 });
-  const progressRef = useRef(0);
   const breakRef = useRef(0);
   const [flash, setFlash] = useState<"for" | "against" | null>(null);
 
@@ -122,9 +126,6 @@ export function MatchField({
   useEffect(() => {
     scoreRef.current = score ?? { for: 0, against: 0 };
   }, [score]);
-  useEffect(() => {
-    progressRef.current = progress ?? 0;
-  }, [progress]);
   useEffect(() => {
     breakRef.current = breakKey ?? 0;
   }, [breakKey]);
@@ -380,7 +381,7 @@ export function MatchField({
       {
         let target = 0.32 + 0.42 * (advancement(possTeam, pos[carrier].x) / 100);
         if (transitionTeam === possTeam && now < transitionUntil) target += 0.35;
-        if (chasingTeam() === possTeam) target += 0.22 * (0.35 + 0.65 * progressRef.current);
+        if (chasingTeam() === possTeam) target += 0.22 * (0.35 + 0.65 * live.current.progress);
         tempo += (clamp(target, 0.15, 1) - tempo) * ease(0.05, dt);
       }
 
@@ -496,7 +497,7 @@ export function MatchField({
       const shiftX = (ball.x - 50) * 0.28;
       const shiftY = (ball.y - 50) * 0.3;
       const chase = chasingTeam();
-      const intensity = Math.min(1.4, Math.abs(scoreRef.current.for - scoreRef.current.against)) * (0.35 + 0.65 * progressRef.current);
+      const intensity = Math.min(1.4, Math.abs(scoreRef.current.for - scoreRef.current.against)) * (0.35 + 0.65 * live.current.progress);
       const tt = now * 0.001;
 
       players.forEach((p, i) => {
@@ -615,7 +616,8 @@ export function MatchField({
       cancelAnimationFrame(raf);
       ro?.disconnect();
     };
-  }, [players]);
+    // `live` is a stable ref (read inside the loop); it never re-triggers
+  }, [players, live]);
 
   return (
     <div className="mf-field" ref={fieldRef} aria-hidden="true">
@@ -663,3 +665,8 @@ export function MatchField({
     </div>
   );
 }
+
+// memoised: progress now arrives via the `live` ref, so the per-tick re-renders
+// of LiveMatch (its clock) no longer reconcile the pitch — it re-renders only
+// when its real props change (a goal, a sending-off, a break)
+export const MatchField = memo(MatchFieldImpl);

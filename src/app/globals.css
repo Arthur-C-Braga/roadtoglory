@@ -1814,6 +1814,9 @@ h3 {
   width: clamp(120px, 20vw, 200px);
   pointer-events: none;
   z-index: 6;
+  /* own compositor layer: the drop-shadow rasterises once and the scale/
+     translate animates on the GPU instead of repainting the shadow each frame */
+  will-change: transform;
   animation: goal-pop 1.1s ease both;
 }
 /* bigger goal celebration image in the multiplayer match card */
@@ -1833,7 +1836,8 @@ h3 {
   width: 100%;
   height: auto;
   object-fit: contain;
-  filter: drop-shadow(0 10px 28px rgba(0, 0, 0, 0.7));
+  /* lighter blur — far cheaper to composite on mobile GPUs */
+  filter: drop-shadow(0 6px 12px rgba(0, 0, 0, 0.6));
 }
 /* mobile: there's no room beside the card, so drop the popup BELOW the card,
    barely overlapping its bottom edge (your scorer left, the opponent right) */
@@ -1854,6 +1858,9 @@ h3 {
     left: auto;
     right: 8px;
     margin-left: 0;
+  }
+  .goal-pop img {
+    filter: drop-shadow(0 4px 9px rgba(0, 0, 0, 0.55));
   }
 }
 /* same fade/pop, but anchored just under the card's bottom edge (small overlap) */
@@ -2070,6 +2077,12 @@ h3 {
   box-shadow: 0 0 6px rgba(255, 255, 255, 0.7), 0 1px 3px rgba(0, 0, 0, 0.6);
   will-change: transform;
   z-index: 3;
+}
+/* mobile: drop the ball's glow — a static but per-frame composite cost */
+@media (max-width: 640px) {
+  .mf-ball {
+    box-shadow: none;
+  }
 }
 .mf-trail {
   position: absolute;

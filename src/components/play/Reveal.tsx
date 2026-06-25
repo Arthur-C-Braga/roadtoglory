@@ -595,6 +595,9 @@ export function LiveMatch({
 }) {
   const t = useTranslations();
   const [tick, setTick] = useState(0);
+  // match progress (0..1) fed to the pitch via a stable ref, so the clock's
+  // per-tick re-renders don't reconcile the (memoised) MatchField
+  const liveRef = useRef({ progress: 0 });
   const [score, setScore] = useState({ f: 0, a: 0 });
   const [events, setEvents] = useState<Fixture["events"]>([]);
   const [goalFlash, setGoalFlash] = useState<"for" | "against" | null>(null);
@@ -721,6 +724,7 @@ export function LiveMatch({
       if (cancelled) return;
       cur++;
       setTick(cur);
+      liveRef.current.progress = fixture.totalTicks ? cur / fixture.totalTicks : 0;
       const evs = fixture.events.filter((e) => e.tick === cur);
       if (evs.length) {
         const goals = evs.filter((e) => e.kind === "goal" || e.kind === "pen");
@@ -778,7 +782,6 @@ export function LiveMatch({
   // live score, how far the match has run, and a counter that ticks at each break
   // (half-time / start of extra time) — these drive the pitch's momentum + recentre
   const matchScore = useMemo(() => ({ for: score.f, against: score.a }), [score.f, score.a]);
-  const matchProgress = fixture.totalTicks ? tick / fixture.totalTicks : 0;
   const breakKey =
     (tick >= fixture.htTick ? 1 : 0) +
     (fixture.etHtTick != null && tick >= fixture.ftTick ? 1 : 0);
@@ -867,7 +870,7 @@ export function LiveMatch({
           sentOffFor={sentOffFor}
           sentOffAgainst={sentOffAgainst}
           score={matchScore}
-          progress={matchProgress}
+          live={liveRef}
           breakKey={breakKey}
         />
       )}
