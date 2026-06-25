@@ -1729,6 +1729,28 @@ h3 {
 .ml-reveal-box {
   flex: 0 0 250px;
 }
+/* mobile: each team takes the full row and stacks its box score over a
+   full-width pitch (no more 650px side-by-side overflow) */
+@media (max-width: 760px) {
+  .ml-reveal-team {
+    flex: 1 1 100%;
+    max-width: 100%;
+    flex-direction: column;
+    align-items: center;
+  }
+  .ml-reveal-pitch {
+    flex: 0 1 auto;
+    width: 100%;
+  }
+  .ml-reveal-pitch .pitch {
+    max-width: 100%;
+  }
+  .ml-reveal-box {
+    flex: 0 0 auto;
+    width: 100%;
+    max-width: 360px;
+  }
+}
 .reveal-controls {
   display: flex;
   gap: 12px;
@@ -1805,6 +1827,24 @@ h3 {
   height: auto;
   object-fit: contain;
   filter: drop-shadow(0 10px 28px rgba(0, 0, 0, 0.7));
+}
+/* mobile: there's no room beside the card, so tuck the popups INSIDE it
+   (your scorer at the left edge, the opponent at the right) and shrink them */
+@media (max-width: 640px) {
+  .goal-pop,
+  .reveal-stage.card-open .goal-pop {
+    width: clamp(104px, 38vw, 168px);
+  }
+  .goal-pop--for {
+    right: auto;
+    left: 6px;
+    margin-right: 0;
+  }
+  .goal-pop--against {
+    left: auto;
+    right: 6px;
+    margin-left: 0;
+  }
 }
 /* only fade in (quick) / fade out, with a small pop — kept vertically centered */
 @keyframes goal-pop {
@@ -3335,6 +3375,13 @@ h3 {
 }
 @media (max-width: 860px) {
   .ml-setup-grid {
+    grid-template-columns: 1fr;
+  }
+}
+/* the 4-player quad grid keeps 2 columns past 860 (higher specificity), so
+   force a single column on phones */
+@media (max-width: 600px) {
+  .ml-setup-grid.quad {
     grid-template-columns: 1fr;
   }
 }
