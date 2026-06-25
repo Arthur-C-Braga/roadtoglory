@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { NextIntlClientProvider } from "next-intl";
 import { getMessages, setRequestLocale, getTranslations } from "next-intl/server";
 import { notFound } from "next/navigation";
@@ -11,6 +11,11 @@ import "../globals.css";
 export function generateStaticParams() {
   return routing.locales.map((locale) => ({ locale }));
 }
+
+// dark navy to match the app background — colours the mobile browser chrome
+export const viewport: Viewport = {
+  themeColor: "#05091c",
+};
 
 export async function generateMetadata({
   params,
