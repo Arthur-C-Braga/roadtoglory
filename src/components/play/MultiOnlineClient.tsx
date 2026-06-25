@@ -201,14 +201,18 @@ function Lobby({
             ) : (
               <>
                 <span className="ml-menu-label">{t("multi.online.pickMode")}</span>
-                <div className="ml-menu-row">
+                <div className="mo-mode-grid">
                   <button className="btn btn-primary" disabled={n < 2} onClick={() => start("single")}>
                     {t("multi.local.modeSingle")}
                   </button>
                   <button className="btn btn-primary" disabled={n < 2} onClick={() => start("twoleg")}>
                     {t("multi.local.modeTwoLeg")}
                   </button>
-                  <button className="btn btn-primary" disabled={n < 4} onClick={() => start("tourney")}>
+                  <button
+                    className="btn btn-primary mo-mode-wide"
+                    disabled={n < 4}
+                    onClick={() => start("tourney")}
+                  >
                     {t("multi.local.modeTourney")}
                   </button>
                 </div>
