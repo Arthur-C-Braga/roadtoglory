@@ -413,24 +413,26 @@ export function MultiGame({
 
           <div className="ml-draft-grid">
             <aside className="ml-draft-left">
-              {!myTurn ? (
+              {!draw || (spinning && myTurn) ? (
                 <div className="roll-zone">
-                  <div className="roll-prompt">{t("multi.online.watching", { name: named(turn) })}</div>
-                </div>
-              ) : !draw || spinning ? (
-                <div className="roll-zone">
-                  <div className="roll-prompt">{spinning ? t("roll.spinning") : t("roll.idle")}</div>
-                  <button
-                    className="btn btn-primary btn-roll"
-                    onClick={() => rollDie(false)}
-                    disabled={spinning}
-                  >
-                    <span>{spinning ? t("roll.spinning") : t("roll.rollBtn")}</span>
-                    <span className={`dice-ic${spinning ? " spinning" : ""}`}>🎲</span>
-                  </button>
+                  {myTurn ? (
+                    <>
+                      <div className="roll-prompt">{spinning ? t("roll.spinning") : t("roll.idle")}</div>
+                      <button
+                        className="btn btn-primary btn-roll"
+                        onClick={() => rollDie(false)}
+                        disabled={spinning}
+                      >
+                        <span>{spinning ? t("roll.spinning") : t("roll.rollBtn")}</span>
+                        <span className={`dice-ic${spinning ? " spinning" : ""}`}>🎲</span>
+                      </button>
+                    </>
+                  ) : (
+                    <div className="roll-prompt">{t("multi.online.watching", { name: named(turn) })}</div>
+                  )}
                 </div>
               ) : (
-                <div className="draft-pool">
+                <div className={`draft-pool${myTurn ? "" : " watching"}`}>
                   <div className="pool-head">
                     <div className="roll-drawn sm">
                       <span className="roll-flag">
@@ -442,16 +444,22 @@ export function MultiGame({
                         {squad?.nation.name} · {cupToSeason(draw.cup)}
                       </span>
                     </div>
-                    <button
-                      className="reroll-mini"
-                      onClick={() => rollDie(true)}
-                      disabled={rerolls[turn] <= 0}
-                    >
-                      ↺ {rerolls[turn]}
-                    </button>
+                    {myTurn && (
+                      <button
+                        className="reroll-mini"
+                        onClick={() => rollDie(true)}
+                        disabled={rerolls[turn] <= 0}
+                      >
+                        ↺ {rerolls[turn]}
+                      </button>
+                    )}
                   </div>
                   <div className="pool-title">
-                    {selectedPlayer ? t("play.hintMove") : t("roll.choosePlayer")}
+                    {myTurn
+                      ? selectedPlayer
+                        ? t("play.hintMove")
+                        : t("roll.choosePlayer")
+                      : t("multi.online.watching", { name: named(turn) })}
                     <span className="pool-pick num"> · {filled + 1}/{activeSlots.length}</span>
                   </div>
                   <div className="pool-list">
@@ -463,7 +471,7 @@ export function MultiGame({
                           key={p.id}
                           className={`pool-chip${fits ? "" : " dim"}${isSel ? " sel" : ""}`}
                           onClick={() => pickPlayer(p)}
-                          disabled={!fits}
+                          disabled={!myTurn || !fits}
                         >
                           <span className="pool-pos num">{p.pos.join("/")}</span>
                           <span className="pool-name">{p.name}</span>

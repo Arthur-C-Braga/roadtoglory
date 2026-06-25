@@ -2924,6 +2924,10 @@ h3 {
 .ml-setup-grid.quad {
   grid-template-columns: 1fr 1fr;
 }
+/* watcher's read-only draft pool (sees the opponent's roll live) */
+.draft-pool.watching .pool-chip {
+  cursor: default;
+}
 /* online: a single player only edits their own card */
 .ml-setup-grid.solo {
   grid-template-columns: 1fr;
